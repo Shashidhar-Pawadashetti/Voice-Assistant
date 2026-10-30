@@ -203,9 +203,15 @@ If `verification_status` is `INCOMPLETE`, the outcome must be `RULES_NOT_VERIFIE
 
 Require recent re-authentication or another appropriate confirmation. Return a deletion request ID and status if deletion is asynchronous. The service must delete/anonymize data across all linked tables, cached items, temporary files and backups according to the approved retention/deletion policy. Do not report “deleted” until the workflow completes.
 
-## 8. Scheme catalog read endpoint
+## 8. Scheme catalog & recommendation endpoints
 
-Optional: `GET /schemes` exposes only approved display metadata and sources. It must not expose internal draft rules unless deliberately intended. No POST/PUT/PATCH/DELETE scheme endpoint is permitted in MVP.
+Implemented in Milestone M4:
+- `GET /api/v1/schemes`: Lists approved scheme catalog summaries with `classification`, `verification_status`, and `demo_only` indicators. Filterable by `classification` and `category`.
+- `GET /api/v1/schemes/{scheme_id}`: Full scheme specification, eligibility conditions, exclusions, required documents, application portal, and evidence references.
+- `POST /api/v1/conversations/{conversation_id}/recommendations`: Triggers deterministic three-valued evaluation of applicable schemes against the conversation profile. Saves immutable `recommendation_runs` in PostgreSQL. Enforces `x-farmer-id` BOLA ownership.
+- `GET /api/v1/conversations/{conversation_id}/recommendations`: Returns chronological audit traces for all previous recommendation runs of that conversation.
+
+No public POST/PUT/PATCH/DELETE scheme management endpoints exist; scheme releases are reviewed, version-controlled code/seed releases.
 
 ## 9. Health endpoints
 

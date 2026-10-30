@@ -481,12 +481,39 @@ class ConversationService:
 
         # Step 4: Determine next question and response
         next_missing_slot = IntentSlotResolver.get_next_missing_slot(current_intent, profile)
+        recommendation_text: Optional[str] = None
+
+        if next_state == DialogueState.EVALUATION_READY:
+            try:
+                from app.core.scheme.enums import RecommendationStatus
+                from app.services.recommendation_service import RecommendationService
+                rec_service = RecommendationService(self.db)
+                rec_results = await rec_service.evaluate_for_farmer(
+                    farmer_id=farmer_id,
+                    conversation_id=conversation_id,
+                    profile=profile,
+                    intent=current_intent,
+                )
+                if rec_results:
+                    matched_or_verif = [
+                        r for r in rec_results
+                        if r.recommendation_status in (
+                            RecommendationStatus.POTENTIALLY_MATCHED,
+                            RecommendationStatus.VERIFICATION_REQUIRED,
+                        )
+                    ]
+                    top_rec = matched_or_verif[0] if matched_or_verif else rec_results[0]
+                    recommendation_text = top_rec.explanation_trace.kannada_explanation
+            except Exception as rec_err:
+                logger.warning(f"Scheme recommendation evaluation fallback on turn: {rec_err}")
+
         assistant_text = generate_dialogue_response(
             state=next_state,
             intent=current_intent,
             profile=profile,
             next_missing_slot=next_missing_slot,
             pending_confirmation_slot=pending_confirmation_slot,
+            recommendation_text=recommendation_text,
         )
 
         # Step 5: Synthesize TTS with graceful text fallback

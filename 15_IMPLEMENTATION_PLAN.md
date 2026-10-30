@@ -119,6 +119,7 @@ Acceptance:
 - PM-KISAN and PMFBY remain `RULES_NOT_VERIFIED` until official rules are reviewed and encoded;
 - all synthetic results show `DEMO_ONLY`;
 - model cannot alter rule outcome.
+- **Status:** COMPLETED. (See `docs/M4_SCHEME_INTELLIGENCE.md`, 165 tests passing, 87% coverage).
 
 ## M5 — Auth, authorization and privacy
 

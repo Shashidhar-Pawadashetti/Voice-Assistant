@@ -18,6 +18,14 @@ class Scheme(Base):
     scheme_id: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     classification: Mapped[str] = mapped_column(String(30), nullable=False)  # REAL_GOVERNMENT, SYNTHETIC_DEMO
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    display_name_kn: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description_kn: Mapped[str | None] = mapped_column(Text, nullable=True)
+    benefit_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    benefit_description_kn: Mapped[str | None] = mapped_column(Text, nullable=True)
+    application_portal: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    applicable_geography: Mapped[dict | None] = mapped_column(PortableJSON, nullable=True)
+    dataset_version: Mapped[str] = mapped_column(String(50), default="2026.1", nullable=False)
     assistance_category: Mapped[str] = mapped_column(String(100), nullable=False)
     government_level: Mapped[str] = mapped_column(String(50), default="NONE", nullable=False)  # CENTRAL, STATE, NONE
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

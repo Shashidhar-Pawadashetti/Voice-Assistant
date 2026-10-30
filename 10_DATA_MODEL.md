@@ -121,6 +121,12 @@ Do not store uploaded audio bytes in job payload. Job payload can reference a te
 - `scheme_id TEXT UNIQUE`
 - `classification`
 - `display_name`
+- `display_name_kn`
+- `description`, `description_kn`
+- `benefit_description`, `benefit_description_kn`
+- `application_portal`
+- `applicable_geography JSONB`
+- `dataset_version`
 - `assistance_category`
 - `government_level`
 - `active`

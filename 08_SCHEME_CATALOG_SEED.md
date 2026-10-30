@@ -124,3 +124,10 @@ Until real criteria are verified:
 - the dialogue may collect the relevant facts;
 - the evaluator must return `RULES_NOT_VERIFIED` for real schemes;
 - demo schemes can be exercised through synthetic fixtures with a persistent `DEMO_ONLY` marker.
+
+> [!NOTE]
+> **Milestone M4 Update:**
+> - `PM_KISAN` rule version `1.0.0` was officially verified against Operational Guidelines Clause 2(b) & Clause 3, requiring Bhoomi/e-KYC verification.
+> - `PMFBY` is retained as `INCOMPLETE` (`rule_version: 0.0.0`) because seasonal gazette crop notifications cannot be invented. It safely produces `RULES_NOT_VERIFIED`.
+> - Demo schemes are strictly labelled `DEMO_ONLY` with `verification_status: VERIFIED_FOR_DEMO_ONLY`.
+> - See `docs/M4_SCHEME_INTELLIGENCE.md`.

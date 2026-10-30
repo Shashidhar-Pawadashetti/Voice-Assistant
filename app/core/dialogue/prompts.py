@@ -72,6 +72,7 @@ def generate_dialogue_response(
     profile: AgriculturalProfile,
     next_missing_slot: Optional[str] = None,
     pending_confirmation_slot: Optional[str] = None,
+    recommendation_text: Optional[str] = None,
 ) -> str:
     """Generate grounded, context-aware native Kannada conversational response text."""
 
@@ -92,6 +93,8 @@ def generate_dialogue_response(
 
     # 4. Evaluation Ready state
     if state == DialogueState.EVALUATION_READY:
+        if recommendation_text:
+            return recommendation_text
         return (
             "ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ಎಲ್ಲ ಅಗತ್ಯ ಕೃಷಿ ವಿವರಗಳನ್ನು ಸಂಗ್ರಹಿಸಲಾಗಿದೆ. "
             "ನಿಮ್ಮ ಯೋಜನೆಗಳ ಅರ್ಹತೆ ಪರಿಶೀಲನೆಗೆ ವಿವರಗಳು ಸಿದ್ಧವಾಗಿವೆ."

@@ -301,3 +301,8 @@ class ConversationExpiredError(KrishiMitraError):
             retryable=False,
             details=details,
         )
+
+
+# Convenient domain aliases for BOLA and resource lookups
+ConversationOwnershipError = AuthorizationError
+NotFoundError = ResourceNotFoundError

@@ -20,6 +20,13 @@ from app.schemas.conversation import (
     TurnResponse,
 )
 
+from app.schemas.scheme import (
+    SchemeSummaryResponse,
+    SchemeDetailResponse,
+    RecommendationRunResponse,
+    RecommendationEvaluationResponse,
+)
+
 __all__ = [
     "LivenessResponse",
     "ReadinessResponse",
@@ -38,4 +45,8 @@ __all__ = [
     "ConversationTurnDTO",
     "ConversationHistoryResponse",
     "TurnResponse",
+    "SchemeSummaryResponse",
+    "SchemeDetailResponse",
+    "RecommendationRunResponse",
+    "RecommendationEvaluationResponse",
 ]

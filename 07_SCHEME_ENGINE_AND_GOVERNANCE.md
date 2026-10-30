@@ -34,13 +34,17 @@ A hard exclusion condition that evaluates TRUE should fail the candidate. If an 
 Use these outcome values:
 
 - `POTENTIALLY_MATCHED`: all configured required conditions in the current approved rule version evaluate TRUE, but the system still does not confer entitlement or verify official acceptance;
-- `NEEDS_MORE_INFORMATION`: one or more required conditions evaluate UNKNOWN and there is no decisive failure;
+- `INSUFFICIENT_INFORMATION` (or `NEEDS_MORE_INFORMATION`): one or more required conditions evaluate UNKNOWN due to missing agricultural facts and there is no decisive failure;
+- `VERIFICATION_REQUIRED`: required facts are self-reported or confirmed by the farmer, but authoritative government verification (e.g. state land records via Bhoomi or e-KYC) remains mandatory before eligibility can be established;
 - `NOT_MATCHED`: at least one decisive disqualifying condition evaluates FALSE or a hard exclusion evaluates TRUE;
 - `RULES_NOT_VERIFIED`: scheme metadata/rules are draft, incomplete, expired or lack adequate official evidence; do not show as a factual real-scheme recommendation.
 
 `POTENTIALLY_MATCHED` must include a persistent `official_verification_required: true` flag for real schemes unless a lawful, authoritative real-time integration proves otherwise. No such integration is assumed.
 
 Synthetic schemes must be labelled `DEMO_ONLY` in every API and UI result. Their output is a test case, not a real benefit recommendation.
+
+> [!NOTE]
+> Implemented in Milestone M4 via `app/core/scheme/evaluator.py`, `app/services/recommendation_service.py`, and verified in `docs/M4_SCHEME_INTELLIGENCE.md`.
 
 ## 4. Rule schema
 

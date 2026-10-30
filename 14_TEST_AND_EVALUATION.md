@@ -118,4 +118,12 @@ Do not publish a concurrency number without the machine specification, software/
 - Native Kannada reviewers approve core voice prompts and TTS intelligibility for demo use.
 - Performance results are documented; no unsupported 1,000-user claim.
 
+> [!NOTE]
+> **Milestone M4 Test Deliverables:**
+> - Unit tests for 3-valued logic truth tables, all operators, effective dates, exclusions in `tests/unit/test_scheme_evaluator.py`.
+> - Repository, explainability and BOLA tests in `tests/unit/test_recommendation_service.py`.
+> - End-to-end scheme recommendation integration tests in `tests/integration/test_scheme_recommendation.py`.
+> - M3 dialogue and automatic scheme evaluation tests in `tests/integration/test_dialogue_scheme_integration.py`.
+> - Full test suite: 165 passed, 87% statement coverage.
+
 Exact percentage thresholds for WER, intent accuracy and slot extraction must be set after the first baseline and reviewed with native Kannada speakers; do not fabricate a quality number in advance.
