@@ -65,6 +65,13 @@ Start with [`START_PROMPT_FOR_ANTIGRAVITY.md`](START_PROMPT_FOR_ANTIGRAVITY.md) 
 | API | Versioned REST; frontend can poll job status for MVP |
 | Deployment | Docker/Compose for local development; production topology later |
 
+## Milestone Implementation Status
+
+- **M0 (Foundation & Schema-Constrained Extraction):** Complete. FastAPI backend, PostgreSQL 16 models & Alembic migrations, safe JSON structured logging with PII scrubbing, Ollama Qwen3 4B adapter with schema validation and bounded retry.
+- **M1 (Speech Pipeline & Voice Orchestration):** Complete. Audio validation/normalization (16 kHz mono WAV via FFmpeg), AI4Bharat IndicConformer ASR adapter, Indic-TTS adapter with numeral expansion, ephemeral audio lifecycle, end-to-end voice pipeline. See [`docs/M1_SPEECH_PIPELINE.md`](docs/M1_SPEECH_PIPELINE.md).
+- **M2 (Agricultural Understanding & Normalization):** Complete. Versioned Kannada agricultural vocabulary (`2026.10.1`), canonical Karnataka geographic hierarchy (31 districts & notified taluks), exact Decimal land normalization, tenure classification & provenance, natural Kannada correction handling, and multi-turn profile assembly without LLM eligibility calculation. See [`docs/M2_AGRICULTURAL_UNDERSTANDING.md`](docs/M2_AGRICULTURAL_UNDERSTANDING.md).
+- **Current Test Suite:** 121 passing tests, 87% coverage.
+
 ## Change control
 
 If implementation needs a decision that conflicts with these documents, the agent must:

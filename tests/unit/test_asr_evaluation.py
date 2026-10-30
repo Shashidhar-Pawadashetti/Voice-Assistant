@@ -5,7 +5,7 @@ import jiwer
 import pytest
 
 
-# Reviewed Kannada reference evaluation dataset
+# Reviewed Kannada reference evaluation dataset across Karnataka dialect zones
 KANNADA_EVALUATION_DATASET: List[Tuple[str, str, str]] = [
     (
         "utt_001_dharwad_sorghum",
@@ -26,6 +26,36 @@ KANNADA_EVALUATION_DATASET: List[Tuple[str, str, str]] = [
         "utt_004_codemixed_insurance",
         "ಬೆಳೆ ಇನ್ಶೂರೆನ್ಸ್ ಸ್ಟೇಟಸ್ ಚೆಕ್ ಮಾಡಬೇಕು",
         "Code-mixed Kannada-English query for crop insurance status",
+    ),
+    (
+        "utt_005_belagavi_sugarcane",
+        "ಬೆಳಗಾವಿ ಜಿಲ್ಲೆ ಅಥಣಿ ತಾಲೂಕಿನಲ್ಲಿ ಕಬ್ಬು ಬೆಳೆಗೆ ತುಂತುರು ನೀರಾವರಿ ಬೇಕು",
+        "Belagavi sugarcane sprinkler irrigation query",
+    ),
+    (
+        "utt_006_bagalkote_horticulture",
+        "ಬಾಗಲಕೋಟೆ ಜಿಲ್ಲೆ ಬೀಳಗಿ ತಾಲೂಕು ದಾಳಿಂಬೆ ಬೆಳೆ ಸಬ್ಸಿಡಿ",
+        "Bagalkote horticulture pomegranate subsidy query",
+    ),
+    (
+        "utt_007_mysuru_ragi_tenant",
+        "ಮೈಸೂರು ತಾಲೂಕಿನಲ್ಲಿ ಮೂರೂವರೆ ಎಕರೆ ರಾಗಿ ಬೆಳೆಯುವ ಗೇಣಿದಾರ ರೈತ",
+        "Mysuru tenant farmer growing ragi on 3.5 acres",
+    ),
+    (
+        "utt_008_raichur_cotton_pest",
+        "ರಾಯಚೂರು ಜಿಲ್ಲೆ ಮಾನ್ವಿ ಹತ್ತಿ ಬೆಳೆಗೆ ಕೀಟನಾಶಕ ಪರಿಹಾರ",
+        "Raichur cotton pesticide relief query",
+    ),
+    (
+        "utt_009_shivamogga_arecanut",
+        "ಶಿವಮೊಗ್ಗ ತೀರ್ಥಹಳ್ಳಿ ಅಡಿಕೆ ತೋಟಕ್ಕೆ ಬೋರ್‌ವೆಲ್ ಸಬ್ಸಿಡಿ",
+        "Shivamogga arecanut borewell subsidy query",
+    ),
+    (
+        "utt_010_chamarajanagara_organic",
+        "ಚಾಮರಾಜನಗರ ಗುಂಡ್ಲುಪೇಟೆ ಸಾವಯವ ಗೊಬ್ಬರ ಪ್ರೋತ್ಸಾಹಧನ",
+        "Chamarajanagara organic farming incentive query",
     ),
 ]
 

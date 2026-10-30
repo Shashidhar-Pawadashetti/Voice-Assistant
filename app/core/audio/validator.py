@@ -99,6 +99,7 @@ def validate_audio_file(
     max_bytes: int = 15728640,
     max_seconds: int = 60,
     min_bytes: int = 44,
+    min_seconds: float = 0.2,
 ) -> AudioMetadata:
     """Validate audio bytes against format, size, duration, and safety constraints.
 
@@ -129,11 +130,17 @@ def validate_audio_file(
     channels, sample_rate, duration_seconds = None, None, None
     if detected_format == "wav":
         channels, sample_rate, duration_seconds = parse_wav_header(content)
-        if duration_seconds is not None and duration_seconds > max_seconds:
-            raise AudioValidationError(
-                f"Audio duration ({duration_seconds:.1f}s) exceeds maximum allowed {max_seconds} seconds.",
-                details={"duration_seconds": duration_seconds, "max_seconds": max_seconds},
-            )
+        if duration_seconds is not None:
+            if duration_seconds < min_seconds:
+                raise AudioValidationError(
+                    f"Audio duration ({duration_seconds:.2f}s) is too short. Minimum required is {min_seconds}s.",
+                    details={"duration_seconds": duration_seconds, "min_seconds": min_seconds},
+                )
+            if duration_seconds > max_seconds:
+                raise AudioValidationError(
+                    f"Audio duration ({duration_seconds:.1f}s) exceeds maximum allowed {max_seconds} seconds.",
+                    details={"duration_seconds": duration_seconds, "max_seconds": max_seconds},
+                )
 
     return AudioMetadata(
         format=detected_format,

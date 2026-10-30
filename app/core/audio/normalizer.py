@@ -55,6 +55,7 @@ async def normalize_to_wav_16k(
     *,
     timeout_seconds: float = 15.0,
     max_duration_seconds: float = 60.0,
+    min_duration_seconds: float = 0.2,
 ) -> Path:
     """Normalize input audio to 16 kHz mono 16-bit PCM WAV.
 
@@ -112,11 +113,17 @@ async def normalize_to_wav_16k(
 
         # Validate normalized audio duration
         duration = probe_audio_duration(output_path)
-        if duration is not None and duration > max_duration_seconds:
-            raise AudioValidationError(
-                f"Audio duration ({duration:.1f}s) exceeds maximum allowed {max_duration_seconds} seconds.",
-                details={"duration_seconds": duration, "max_seconds": max_duration_seconds},
-            )
+        if duration is not None:
+            if duration < min_duration_seconds:
+                raise AudioValidationError(
+                    f"Decoded audio duration ({duration:.2f}s) is too short. Minimum required is {min_duration_seconds}s.",
+                    details={"duration_seconds": duration, "min_seconds": min_duration_seconds},
+                )
+            if duration > max_duration_seconds:
+                raise AudioValidationError(
+                    f"Audio duration ({duration:.1f}s) exceeds maximum allowed {max_duration_seconds} seconds.",
+                    details={"duration_seconds": duration, "max_seconds": max_duration_seconds},
+                )
 
         return output_path
 

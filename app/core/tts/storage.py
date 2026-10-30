@@ -28,9 +28,16 @@ class EphemeralAudioStore:
         self.default_ttl_seconds = default_ttl_seconds
         # In-memory expiry registry: audio_id -> expiry_timestamp
         self._expiry_registry: Dict[str, float] = {}
+        # In-memory ownership registry: audio_id -> owner_id
+        self._owner_registry: Dict[str, Optional[str]] = {}
 
-    async def save(self, audio_bytes: bytes, ttl_seconds: Optional[int] = None) -> str:
-        """Store synthesized audio bytes and return an ephemeral audio ID."""
+    async def save(
+        self,
+        audio_bytes: bytes,
+        ttl_seconds: Optional[int] = None,
+        owner_id: Optional[str] = None,
+    ) -> str:
+        """Store synthesized audio bytes with optional owner scope and return an ephemeral audio ID."""
         audio_id = uuid.uuid4().hex
         ttl = ttl_seconds if ttl_seconds is not None else self.default_ttl_seconds
         expires_at = time.time() + ttl
@@ -39,12 +46,19 @@ class EphemeralAudioStore:
         await asyncio.to_thread(file_path.write_bytes, audio_bytes)
 
         self._expiry_registry[audio_id] = expires_at
+        self._owner_registry[audio_id] = owner_id
         return audio_id
 
-    async def get(self, audio_id: str) -> Optional[bytes]:
-        """Retrieve stored audio bytes if valid and unexpired."""
+    async def get(self, audio_id: str, owner_id: Optional[str] = None) -> Optional[bytes]:
+        """Retrieve stored audio bytes if valid, unexpired, and caller is authorized."""
         # Prevent path traversal
         if not SAFE_ID_REGEX.match(audio_id):
+            return None
+
+        # Check ownership if owner was bound
+        expected_owner = self._owner_registry.get(audio_id)
+        if expected_owner is not None and owner_id is not None and expected_owner != owner_id:
+            logger.warning("Unauthorized attempt to access response audio %s by owner %s", audio_id, owner_id)
             return None
 
         file_path = self.storage_dir / f"{audio_id}.wav"
@@ -68,6 +82,7 @@ class EphemeralAudioStore:
             try:
                 file_path.unlink(missing_ok=True)
                 self._expiry_registry.pop(audio_id, None)
+                self._owner_registry.pop(audio_id, None)
             except OSError:
                 pass
             return None
@@ -93,6 +108,7 @@ class EphemeralAudioStore:
             except OSError:
                 pass
             self._expiry_registry.pop(aid, None)
+            self._owner_registry.pop(aid, None)
 
         # Also sweep any orphaned files on disk
         for file_path in self.storage_dir.glob("*.wav"):

@@ -25,11 +25,13 @@ class IndicConformerAdapter(SpeechRecognizer):
         service_url: Optional[str] = None,
         timeout_seconds: Optional[float] = None,
         model_version: Optional[str] = None,
+        http_client: Optional[httpx.AsyncClient] = None,
     ):
         settings = get_settings()
         self.service_url = (service_url or settings.ASR_SERVICE_URL).rstrip("/")
         self.timeout_seconds = timeout_seconds or settings.ASR_TIMEOUT_SECONDS
         self.model_version = model_version or settings.ASR_MODEL_VERSION
+        self._external_client = http_client
 
     async def transcribe(self, audio_path: Path, *, language: str = "kn") -> ASRResult:
         """Send normalized audio to the IndicConformer service for Kannada transcription."""

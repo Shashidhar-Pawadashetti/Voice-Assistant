@@ -84,6 +84,7 @@ Acceptance:
 - ambiguous values remain unknown/proposed;
 - fractions and unit conversion tests pass;
 - no `verified` status can be supplied by the LLM.
+- **Status:** COMPLETED. (See `docs/M2_AGRICULTURAL_UNDERSTANDING.md`, 121 tests passing, 87% coverage).
 
 ## M3 — Dialogue and context
 
