@@ -13,6 +13,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.health import router as health_router
@@ -47,15 +48,22 @@ def create_app() -> FastAPI:
     """Create and configure the FastAPI application instance."""
     settings = get_settings()
 
+    is_production = settings.APP_ENV == "production"
+    hide_docs = is_production and not getattr(settings, "ENABLE_PUBLIC_DOCS", False)
+
     app = FastAPI(
         title="Krishi Mitra AI Backend",
         description="Kannada voice-first agricultural scheme assistant backend",
         version="0.1.0",
-        docs_url="/docs" if settings.APP_ENV != "production" else None,
+        docs_url=None if hide_docs else "/docs",
         redoc_url=None,
-        openapi_url="/openapi.json",
+        openapi_url=None if hide_docs else "/openapi.json",
         lifespan=lifespan,
     )
+
+    # Host Validation Middleware
+    if settings.allowed_hosts_list and "*" not in settings.allowed_hosts_list:
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts_list)
 
     # CORS Middleware
     app.add_middleware(
@@ -74,11 +82,13 @@ def create_app() -> FastAPI:
         request.state.request_id = request_id
 
         # Enforce Request Size Limits (DoS prevention)
+        is_voice_route = "voice" in request.url.path or "turns" in request.url.path
+        max_bytes = settings.AUDIO_MAX_BYTES if is_voice_route else 2 * 1024 * 1024
+
         content_length = request.headers.get("content-length")
         if content_length:
             try:
                 cl_int = int(content_length)
-                max_bytes = settings.AUDIO_MAX_BYTES if "voice" in request.url.path else 2 * 1024 * 1024
                 if cl_int > max_bytes:
                     return JSONResponse(
                         status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -112,6 +122,8 @@ def create_app() -> FastAPI:
                 response.headers["X-XSS-Protection"] = "1; mode=block"
                 response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
                 response.headers["Content-Security-Policy"] = "default-src 'self'"
+                if settings.APP_ENV == "production":
+                    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
             # Safe access log: never logs user input, transcripts, audio, or tokens
             logger.info(

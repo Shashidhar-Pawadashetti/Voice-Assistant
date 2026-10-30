@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-10-30 22:04:36 UTC",
+  "environment": {
+    "runtime": "FastAPI + Uvicorn ASGI",
+    "database": "Async PostgreSQL connection pool (simulated via AsyncSession)",
+    "cache_limiter": "Sliding-Window Rate Limiter"
+  },
+  "results": [
+    {
+      "scenario": "Tier 1: Farmer Auth & Dashboard Read",
+      "concurrency": 50,
+      "total_requests": 150,
+      "successful": 100,
+      "failed": 0,
+      "rate_limited": 0,
+      "duration_seconds": 4.43,
+      "throughput_rps": 33.9,
+      "p50_ms": 184.01,
+      "p90_ms": 4120.83,
+      "p95_ms": 4140.74,
+      "p99_ms": 4157.08,
+      "mean_ms": 1459.92,
+      "max_ms": 4159.44
+    },
+    {
+      "scenario": "Tier 2: Interactive Dialogue & Scheme Extraction",
+      "concurrency": 25,
+      "total_requests": 50,
+      "successful": 25,
+      "failed": 0,
+      "rate_limited": 0,
+      "duration_seconds": 3.53,
+      "throughput_rps": 14.16,
+      "p50_ms": 715.58,
+      "p90_ms": 1351.53,
+      "p95_ms": 1360.98,
+      "p99_ms": 1367.93,
+      "mean_ms": 731.64,
+      "max_ms": 1368.76
+    },
+    {
+      "scenario": "Tier 3: Scheme Evaluation & Explanation Engine",
+      "concurrency": 15,
+      "total_requests": 15,
+      "successful": 13,
+      "failed": 2,
+      "rate_limited": 0,
+      "duration_seconds": 5.06,
+      "throughput_rps": 2.96,
+      "p50_ms": 2489.52,
+      "p90_ms": 2585.98,
+      "p95_ms": 2587.09,
+      "p99_ms": 2589.07,
+      "mean_ms": 2176.34,
+      "max_ms": 2589.56
+    }
+  ]
+}

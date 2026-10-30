@@ -31,8 +31,11 @@ export const SchemesPage: React.FC<SchemesPageProps> = ({ onStartChat }) => {
         setConversationId(active.conversation_id);
         const hist = await schemeService.getHistory(active.conversation_id);
         if (hist && hist.length > 0) {
-          // Latest run
-          const latestRun = hist[0];
+          // Guaranteed latest recommendation run ordering (M7.2)
+          const sorted = [...hist].sort(
+            (a, b) => new Date(b.evaluated_at).getTime() - new Date(a.evaluated_at).getTime()
+          );
+          const latestRun = sorted[0];
           setRecommendations(latestRun.explanation_trace?.recommendations || latestRun.results || []);
         }
       }

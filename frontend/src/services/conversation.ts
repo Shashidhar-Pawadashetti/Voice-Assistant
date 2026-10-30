@@ -1,11 +1,9 @@
-import { apiRequest, getAccessToken } from './api';
+import { apiRequest } from './api';
 import {
   ConversationResponse,
   ConversationTurnDTO,
   TurnResponse,
 } from '../types/conversation';
-
-const BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || '';
 
 export const conversationService = {
   async getActive(): Promise<ConversationResponse | null> {
@@ -37,15 +35,16 @@ export const conversationService = {
   async submitTextTurn(
     conversationId: string,
     text: string,
-    expectedVersion?: number | null
+    expectedVersion?: number | null,
+    clientTurnId?: string | null
   ): Promise<TurnResponse> {
-    const clientTurnId = crypto.randomUUID();
+    const turnId = clientTurnId || crypto.randomUUID();
     return apiRequest<TurnResponse>(`/api/v1/conversations/${conversationId}/turns/text`, {
       method: 'POST',
       body: JSON.stringify({
         text,
         language: 'kn',
-        client_turn_id: clientTurnId,
+        client_turn_id: turnId,
         expected_version: expectedVersion,
       }),
     });
@@ -53,36 +52,23 @@ export const conversationService = {
 
   async submitVoiceTurn(
     conversationId: string,
-    audioBlob: Blob
+    audioBlob: Blob,
+    expectedVersion?: number | null,
+    clientTurnId?: string | null
   ): Promise<TurnResponse> {
-    const clientTurnId = crypto.randomUUID();
+    const turnId = clientTurnId || crypto.randomUUID();
     const formData = new FormData();
     formData.append('file', audioBlob, 'recording.webm');
     formData.append('language', 'kn');
-    formData.append('client_turn_id', clientTurnId);
-
-    const token = getAccessToken();
-    const headers = new Headers();
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+    formData.append('client_turn_id', turnId);
+    if (expectedVersion !== undefined && expectedVersion !== null) {
+      formData.append('expected_version', String(expectedVersion));
     }
 
-    const res = await fetch(`${BASE_URL}/api/v1/conversations/${conversationId}/turns/voice`, {
+    return apiRequest<TurnResponse>(`/api/v1/conversations/${conversationId}/turns/voice`, {
       method: 'POST',
-      headers,
       body: formData,
     });
-
-    if (!res.ok) {
-      let msg = 'ಧ್ವನಿ ಪ್ರಕ್ರಿಯೆ ವಿಫಲವಾಗಿದೆ (Voice turn submission failed)';
-      try {
-        const j = await res.json();
-        if (j.error?.message) msg = j.error.message;
-      } catch {}
-      throw new Error(msg);
-    }
-
-    return await res.json();
   },
 
   async getTurns(conversationId: string): Promise<ConversationTurnDTO[]> {

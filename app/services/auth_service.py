@@ -29,6 +29,7 @@ from app.core.security.crypto import (
 )
 from app.core.security.jwt import (
     create_access_token,
+    decode_access_token,
     generate_refresh_token_pair,
 )
 from app.core.security.password import (
@@ -37,6 +38,7 @@ from app.core.security.password import (
     verify_password,
 )
 from app.core.security.rate_limiter import get_rate_limiter
+from app.core.security.revocation import get_token_revocation_store
 from app.models.audit import AuditEvent
 from app.models.auth import RefreshToken
 from app.models.farmer import ConsentRecord, Farmer, FarmerProfile
@@ -77,6 +79,7 @@ class AuthService:
         self.db = db
         self.settings = get_settings()
         self.rate_limiter = get_rate_limiter()
+        self.revocation_store = get_token_revocation_store()
 
     async def register_farmer(
         self,
@@ -99,8 +102,9 @@ class AuthService:
                 details={"retry_after": retry_after},
             )
 
-        # 2. Check for duplicate account using blind index
-        phone_hash = compute_phone_hash(request.phone_number, self.settings.APP_SECRET_KEY)
+        # 2. Check for duplicate account using blind index (separate key support)
+        blind_key = self.settings.BLIND_INDEX_KEY or self.settings.APP_SECRET_KEY
+        phone_hash = compute_phone_hash(request.phone_number, blind_key)
         stmt = select(Farmer).where(Farmer.phone_number_hash == phone_hash)
         res = await self.db.execute(stmt)
         existing = res.scalar_one_or_none()
@@ -113,7 +117,8 @@ class AuthService:
 
         # 3. Create Farmer record
         pwd_hash = hash_password(request.password)
-        enc_phone = encrypt_phone_number(request.phone_number, self.settings.APP_SECRET_KEY)
+        enc_key = self.settings.ENCRYPTION_KEY or self.settings.APP_SECRET_KEY
+        enc_phone = encrypt_phone_number(request.phone_number, enc_key)
         now = datetime.now(timezone.utc)
         farmer_id = uuid.uuid4()
 
@@ -214,7 +219,8 @@ class AuthService:
                 details={"retry_after": retry_after},
             )
 
-        phone_hash = compute_phone_hash(request.phone_number, self.settings.APP_SECRET_KEY)
+        blind_key = self.settings.BLIND_INDEX_KEY or self.settings.APP_SECRET_KEY
+        phone_hash = compute_phone_hash(request.phone_number, blind_key)
         now = datetime.now(timezone.utc)
 
         # 2. Look up account by blind index
@@ -307,89 +313,128 @@ class AuthService:
         )
 
     async def refresh_tokens(self, refresh_token_str: str) -> TokenResponse:
-        """Rotate refresh token and issue a new access token with family reuse detection."""
+        """Rotate refresh token and issue a new access token with concurrency-safe coordination and reuse detection."""
         token_hash = hashlib.sha256(refresh_token_str.encode("utf-8")).hexdigest()
         now = datetime.now(timezone.utc)
 
-        stmt = select(RefreshToken).where(RefreshToken.token_hash == token_hash)
-        res = await self.db.execute(stmt)
-        token_record = res.scalar_one_or_none()
+        # 1. Acquire rotation coordination lock
+        lock, was_concurrent = await self.revocation_store.acquire_rotation_lock(token_hash)
 
-        if not token_record:
-            raise AuthenticationError("Invalid or expired refresh token")
+        try:
+            # If caller was an in-flight concurrent waiter, consume the result of the prior rotation
+            if was_concurrent:
+                concurrent_res = await self.revocation_store.consume_concurrent_result(token_hash, lock)
+                if concurrent_res:
+                    access_token, refresh_token = concurrent_res
+                    return TokenResponse(
+                        access_token=access_token,
+                        refresh_token=refresh_token,
+                        token_type="bearer",
+                        expires_in=self.settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+                    )
 
-        # Family Reuse Detection: If this token was already revoked/rotated, reuse has occurred!
-        if token_record.is_revoked:
-            logger.warning(
-                "Refresh token reuse detected for farmer %s! Revoking token family %s",
-                token_record.farmer_id,
-                token_record.family_id,
-            )
-            # Revoke entire token family
-            revoke_stmt = (
-                update(RefreshToken)
-                .where(RefreshToken.family_id == token_record.family_id)
-                .values(is_revoked=True, revoked_at=now)
-            )
-            await self.db.execute(revoke_stmt)
+            # Normal path: inspect database token record
+            stmt = select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+            res = await self.db.execute(stmt)
+            token_record = res.scalar_one_or_none()
 
-            reuse_audit = AuditEvent(
-                actor_type="SYSTEM",
-                actor_id=token_record.farmer_id,
-                event_type="TOKEN_REUSE_DETECTED",
-                resource_type="REFRESH_TOKEN_FAMILY",
-                resource_id=token_record.family_id,
-                metadata_={"family_id": str(token_record.family_id)},
-            )
-            self.db.add(reuse_audit)
-            await self.db.commit()
+            if not token_record:
+                raise AuthenticationError("Invalid or expired refresh token")
 
-            raise AuthenticationError("Token reuse detected. All sessions in this family have been terminated.")
+            # Family Reuse Detection: If this token was already revoked/rotated, reuse has occurred!
+            if token_record.is_revoked:
+                logger.warning(
+                    "Refresh token reuse detected for farmer %s! Revoking token family %s",
+                    token_record.farmer_id,
+                    token_record.family_id,
+                )
+                # Revoke entire token family
+                revoke_stmt = (
+                    update(RefreshToken)
+                    .where(RefreshToken.family_id == token_record.family_id)
+                    .values(is_revoked=True, revoked_at=now)
+                )
+                await self.db.execute(revoke_stmt)
 
-        # Check Expiration
-        expires_at_utc = _ensure_utc(token_record.expires_at)
-        if expires_at_utc and expires_at_utc < now:
+                reuse_audit = AuditEvent(
+                    actor_type="SYSTEM",
+                    actor_id=token_record.farmer_id,
+                    event_type="TOKEN_REUSE_DETECTED",
+                    resource_type="REFRESH_TOKEN_FAMILY",
+                    resource_id=token_record.family_id,
+                    metadata_={"family_id": str(token_record.family_id)},
+                )
+                self.db.add(reuse_audit)
+                await self.db.commit()
+
+                raise AuthenticationError("Token reuse detected. All sessions in this family have been terminated.")
+
+            # Check Expiration
+            expires_at_utc = _ensure_utc(token_record.expires_at)
+            if expires_at_utc and expires_at_utc < now:
+                token_record.is_revoked = True
+                token_record.revoked_at = now
+                await self.db.commit()
+                raise AuthenticationError("Refresh token has expired")
+
+            # Successful Rotation: Revoke current token and issue successor under same family
+            new_token_id = uuid.uuid4()
+            new_plaintext, new_token_hash = generate_refresh_token_pair()
+            refresh_expires = now + timedelta(days=self.settings.REFRESH_TOKEN_EXPIRE_DAYS)
+
             token_record.is_revoked = True
             token_record.revoked_at = now
+            token_record.replaced_by_id = new_token_id
+
+            new_refresh_row = RefreshToken(
+                id=new_token_id,
+                farmer_id=token_record.farmer_id,
+                family_id=token_record.family_id,
+                token_hash=new_token_hash,
+                expires_at=refresh_expires,
+                is_revoked=False,
+            )
+            self.db.add(new_refresh_row)
+
+            access_token = create_access_token(token_record.farmer_id)
             await self.db.commit()
-            raise AuthenticationError("Refresh token has expired")
 
-        # Successful Rotation: Revoke current token and issue successor under same family
-        new_token_id = uuid.uuid4()
-        new_plaintext, new_token_hash = generate_refresh_token_pair()
-        refresh_expires = now + timedelta(days=self.settings.REFRESH_TOKEN_EXPIRE_DAYS)
+            # Publish rotation output for any concurrent in-flight waiters and release lock
+            await self.revocation_store.publish_rotation_result(
+                token_hash, lock, access_token, new_plaintext
+            )
 
-        token_record.is_revoked = True
-        token_record.revoked_at = now
-        token_record.replaced_by_id = new_token_id
-
-        new_refresh_row = RefreshToken(
-            id=new_token_id,
-            farmer_id=token_record.farmer_id,
-            family_id=token_record.family_id,
-            token_hash=new_token_hash,
-            expires_at=refresh_expires,
-            is_revoked=False,
-        )
-        self.db.add(new_refresh_row)
-
-        access_token = create_access_token(token_record.farmer_id)
-        await self.db.commit()
-
-        return TokenResponse(
-            access_token=access_token,
-            refresh_token=new_plaintext,
-            token_type="bearer",
-            expires_in=self.settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        )
+            return TokenResponse(
+                access_token=access_token,
+                refresh_token=new_plaintext,
+                token_type="bearer",
+                expires_in=self.settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            )
+        except Exception:
+            await self.revocation_store.release_rotation_lock(token_hash, lock)
+            raise
 
     async def logout_farmer(
         self,
         farmer_id: uuid.UUID,
         refresh_token_str: Optional[str] = None,
+        current_access_token: Optional[str] = None,
     ) -> None:
-        """Revoke active refresh tokens on farmer logout."""
+        """Revoke active refresh tokens and immediately denylist the calling access token."""
         now = datetime.now(timezone.utc)
+
+        # 1. Immediate access-token revocation (M7.1)
+        if current_access_token:
+            try:
+                payload = decode_access_token(current_access_token)
+                jti = payload.get("jti")
+                exp = payload.get("exp")
+                remaining_ttl = int(exp - now.timestamp()) if exp else 900
+                if jti:
+                    await self.revocation_store.revoke_access_token(jti, remaining_ttl)
+            except Exception:
+                pass
+
         if refresh_token_str:
             token_hash = hashlib.sha256(refresh_token_str.encode("utf-8")).hexdigest()
             stmt = (
@@ -399,7 +444,11 @@ class AuthService:
             )
             await self.db.execute(stmt)
         else:
-            # Revoke all active tokens for farmer
+            # Revoke all active tokens for farmer and invalidate all prior access tokens
+            farmer = await self.db.get(Farmer, farmer_id)
+            if farmer:
+                farmer.tokens_revoked_before = now
+
             stmt = (
                 update(RefreshToken)
                 .where(RefreshToken.farmer_id == farmer_id, RefreshToken.is_revoked == False)  # noqa: E712
@@ -432,6 +481,7 @@ class AuthService:
 
         now = datetime.now(timezone.utc)
         farmer.password_hash = hash_password(request.new_password)
+        farmer.tokens_revoked_before = now
         farmer.updated_at = now
 
         # Revoke all active refresh tokens for the farmer

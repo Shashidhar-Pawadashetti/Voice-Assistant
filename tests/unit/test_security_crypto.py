@@ -60,3 +60,24 @@ def test_aes_gcm_phone_encryption_and_decryption():
     encrypted2 = encrypt_phone_number(phone, TEST_SECRET)
     assert encrypted != encrypted2
     assert decrypt_phone_number(encrypted2, TEST_SECRET) == "+919876543210"
+
+
+def test_key_rotation_fallback_support(monkeypatch):
+    """Verify that ciphertexts encrypted with an older key can still be decrypted after key rotation."""
+    from app.config import get_settings
+
+    old_key = "old_secret_key_rotation_123456789012"
+    new_key = "new_active_secret_key_098765432109"
+
+    phone = "9876543210"
+    # Encrypted with old key
+    encrypted_old = encrypt_phone_number(phone, old_key)
+
+    # Configure active settings with new_key as primary, and old_key in previous list
+    settings = get_settings()
+    monkeypatch.setattr(settings, "ENCRYPTION_KEY", new_key)
+    monkeypatch.setattr(settings, "ENCRYPTION_KEY_PREVIOUS", f"dummy_prev,{old_key}")
+
+    # Decryption without specifying secret_key should automatically fall back through previous keys!
+    decrypted = decrypt_phone_number(encrypted_old)
+    assert decrypted == "+919876543210"

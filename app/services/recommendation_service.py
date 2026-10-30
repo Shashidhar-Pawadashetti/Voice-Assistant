@@ -198,7 +198,7 @@ class RecommendationService:
                 RecommendationRun.conversation_id == conversation_id,
                 RecommendationRun.farmer_id == farmer_id,
             )
-            .order_by(RecommendationRun.evaluated_at.asc())
+            .order_by(RecommendationRun.evaluated_at.desc())
         )
         runs_res = await self.db.execute(stmt)
         return list(runs_res.scalars().all())

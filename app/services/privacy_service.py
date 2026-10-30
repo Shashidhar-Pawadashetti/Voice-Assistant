@@ -194,7 +194,20 @@ class PrivacyService:
         audio_purged = await self.audio_store.delete_for_owner(str(farmer.id))
         records_erased["ephemeral_audio_files"] = audio_purged
 
-        # 4. Count and Delete Conversations, Turns, and Slots
+        # 4. Decouple and Anonymize Immutable Recommendation Runs before deleting conversations
+        # In accordance with statutory audit requirements, scheme outcomes and rule evaluation
+        # traces are retained for regulatory verification, but personal identifiers in profile
+        # snapshots are redacted and conversation foreign keys decoupled.
+        anonymized_profile = {"redacted": True, "reason": "DPDP_ERASURE_REQUEST"}
+        rec_anonymize = (
+            update(RecommendationRun)
+            .where(RecommendationRun.farmer_id == farmer.id)
+            .values(conversation_id=None, profile_snapshot=anonymized_profile)
+        )
+        rec_res = await self.db.execute(rec_anonymize)
+        records_erased["recommendation_runs_anonymized"] = rec_res.rowcount
+
+        # 5. Count and Delete Conversations, Turns, and Slots
         conv_stmt = select(Conversation.id).where(Conversation.farmer_id == farmer.id)
         conv_res = await self.db.execute(conv_stmt)
         conv_ids = list(conv_res.scalars().all())
@@ -217,19 +230,19 @@ class PrivacyService:
             records_erased["slots"] = 0
             records_erased["conversations"] = 0
 
-        # 5. Delete Farmer Profile
+        # 6. Delete Farmer Profile
         prof_del = await self.db.execute(
             delete(FarmerProfile).where(FarmerProfile.farmer_id == farmer.id)
         )
         records_erased["farmer_profiles"] = prof_del.rowcount
 
-        # 6. Revoke and Delete Refresh Tokens
+        # 7. Revoke and Delete Refresh Tokens
         token_del = await self.db.execute(
             delete(RefreshToken).where(RefreshToken.farmer_id == farmer.id)
         )
         records_erased["refresh_tokens"] = token_del.rowcount
 
-        # 7. Withdraw Consents
+        # 8. Withdraw Consents
         consent_stmt = (
             update(ConsentRecord)
             .where(ConsentRecord.farmer_id == farmer.id)
@@ -237,22 +250,10 @@ class PrivacyService:
         )
         await self.db.execute(consent_stmt)
 
-        # 8. Anonymize Immutable Recommendation Runs
-        # In accordance with statutory audit requirements, scheme outcomes and rule evaluation
-        # traces are retained for regulatory verification, but personal identifiers in profile
-        # snapshots are redacted.
-        anonymized_profile = {"redacted": True, "reason": "DPDP_ERASURE_REQUEST"}
-        rec_anonymize = (
-            update(RecommendationRun)
-            .where(RecommendationRun.farmer_id == farmer.id)
-            .values(profile_snapshot=anonymized_profile)
-        )
-        rec_res = await self.db.execute(rec_anonymize)
-        records_erased["recommendation_runs_anonymized"] = rec_res.rowcount
-
-        # 9. Anonymize/Deactivate Farmer Account
+        # 9. Anonymize/Deactivate Farmer Account & Revoke all Sessions
         farmer.account_status = "DELETED"
         farmer.deleted_at = now
+        farmer.tokens_revoked_before = now
         farmer.phone_number_encrypted = "DELETED"
         farmer.phone_number_hash = f"deleted_{farmer.id.hex}"
         farmer.password_hash = "DELETED"

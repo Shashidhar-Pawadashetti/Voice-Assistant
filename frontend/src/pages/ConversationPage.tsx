@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Plus, Loader2, AlertCircle } from 'lucide-react';
+import { Send, Plus, Loader2, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { conversationService } from '../services/conversation';
 import { schemeService } from '../services/scheme';
+import { revokeAudioBlobUrls } from '../services/audio';
 import {
   ConversationResponse,
   ConversationTurnDTO,
@@ -17,6 +18,14 @@ interface ConversationPageProps {
   onViewRecommendations: () => void;
 }
 
+interface PendingTurnAttempt {
+  mode: 'VOICE' | 'TEXT';
+  audioBlob?: Blob;
+  text?: string;
+  clientTurnId: string;
+  expectedVersion?: number | null;
+}
+
 export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecommendations }) => {
   const [conversation, setConversation] = useState<ConversationResponse | null>(null);
   const [turns, setTurns] = useState<ConversationTurnDTO[]>([]);
@@ -25,6 +34,8 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [conflictNotice, setConflictNotice] = useState<string | null>(null);
+  const [pendingAttempt, setPendingAttempt] = useState<PendingTurnAttempt | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,6 +47,8 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
   const initConversation = async () => {
     setIsLoading(true);
     setError(null);
+    setConflictNotice(null);
+    setPendingAttempt(null);
     try {
       let active = await conversationService.getActive();
       if (!active) {
@@ -54,22 +67,30 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
 
   useEffect(() => {
     initConversation();
+    return () => {
+      // Memory cleanup: release all ephemeral audio blob URLs on unmount (M7.2)
+      revokeAudioBlobUrls();
+    };
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [turns]);
 
-  // Handle Voice Turn Submission
-  const handleAudioReady = async (audioBlob: Blob) => {
+  // Handle Voice Turn Submission with stable turn ID and optimistic versioning (M7.2)
+  const handleAudioReady = async (audioBlob: Blob, retryTurnId?: string) => {
     if (!conversation) return;
+    const clientTurnId = retryTurnId || crypto.randomUUID();
     setIsSubmitting(true);
     setError(null);
+    setConflictNotice(null);
 
     try {
       const turnRes: TurnResponse = await conversationService.submitVoiceTurn(
         conversation.conversation_id,
-        audioBlob
+        audioBlob,
+        conversation.version,
+        clientTurnId
       );
 
       // Append turns locally
@@ -91,33 +112,47 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
       };
 
       setTurns((prev) => [...prev, farmerTurn, assistantTurn]);
+      setPendingAttempt(null);
 
       // Refresh conversation state and slots
       const refreshed = await conversationService.getById(conversation.conversation_id);
       setConversation(refreshed);
     } catch (err: any) {
-      setError(err.message || 'ಧ್ವನಿ ಪ್ರಕ್ರಿಯೆ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.');
+      if (err.statusCode === 409 || err.code === 'CONCURRENCY_CONFLICT') {
+        // HTTP 409 Conflict Recovery (M7.2)
+        setConflictNotice('ಸಂಭಾಷಣೆಯ ಸ್ಥಿತಿ ಸರ್ವರ್‌ನಲ್ಲಿ ಬದಲಾಗಿದೆ, ಸ್ವಯಂ-ನವೀಕರಿಸಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಮುಂದುವರಿಸಿ.');
+        const refreshed = await conversationService.getById(conversation.conversation_id);
+        setConversation(refreshed);
+        setPendingAttempt(null);
+      } else {
+        setError(err.message || 'ಧ್ವನಿ ಪ್ರಕ್ರಿಯೆ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.');
+        setPendingAttempt({
+          mode: 'VOICE',
+          audioBlob,
+          clientTurnId,
+          expectedVersion: conversation.version,
+        });
+      }
     } finally {
       setIsSubmitting(false);
       setTimeout(scrollToBottom, 150);
     }
   };
 
-  // Handle Text Turn Submission (fallback)
-  const handleTextSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!textInput.trim() || !conversation || isSubmitting) return;
-
-    const message = textInput.trim();
-    setTextInput('');
+  // Execute Text Turn with stable idempotency key across retries
+  const executeTextTurn = async (message: string, retryTurnId?: string) => {
+    if (!conversation) return;
+    const clientTurnId = retryTurnId || crypto.randomUUID();
     setIsSubmitting(true);
     setError(null);
+    setConflictNotice(null);
 
     try {
       const turnRes = await conversationService.submitTextTurn(
         conversation.conversation_id,
         message,
-        conversation.version
+        conversation.version,
+        clientTurnId
       );
 
       const farmerTurn: ConversationTurnDTO = {
@@ -138,15 +173,38 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
       };
 
       setTurns((prev) => [...prev, farmerTurn, assistantTurn]);
+      setPendingAttempt(null);
 
       const refreshed = await conversationService.getById(conversation.conversation_id);
       setConversation(refreshed);
     } catch (err: any) {
-      setError(err.message || 'ಸಂದೇಶ ಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ');
+      if (err.statusCode === 409 || err.code === 'CONCURRENCY_CONFLICT') {
+        // HTTP 409 Conflict Recovery (M7.2)
+        setConflictNotice('ಸಂಭಾಷಣೆಯ ಸ್ಥಿತಿ ಸರ್ವರ್‌ನಲ್ಲಿ ಬದಲಾಗಿದೆ, ಸ್ವಯಂ-ನವೀಕರಿಸಲಾಗಿದೆ. ದಯವಿಟ್ಟು ಮುಂದುವರಿಸಿ.');
+        const refreshed = await conversationService.getById(conversation.conversation_id);
+        setConversation(refreshed);
+        setPendingAttempt(null);
+      } else {
+        setError(err.message || 'ಸಂದೇಶ ಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ');
+        setPendingAttempt({
+          mode: 'TEXT',
+          text: message,
+          clientTurnId,
+          expectedVersion: conversation.version,
+        });
+      }
     } finally {
       setIsSubmitting(false);
       setTimeout(scrollToBottom, 150);
     }
+  };
+
+  const handleTextSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!textInput.trim() || !conversation || isSubmitting) return;
+    const message = textInput.trim();
+    setTextInput('');
+    await executeTextTurn(message);
   };
 
   // Trigger Scheme Recommendations
@@ -271,23 +329,78 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
           </div>
         )}
 
-        {error && (
+        {/* Conflict Auto-Recovery Banner (M7.2) */}
+        {conflictNotice && (
           <div
-            role="alert"
+            role="status"
             style={{
-              backgroundColor: '#fef2f2',
-              color: '#991b1b',
+              backgroundColor: '#ecfdf5',
+              color: '#065f46',
               padding: '10px 14px',
               borderRadius: '12px',
-              border: '1px solid #fecaca',
+              border: '1px solid #a7f3d0',
               fontSize: '13px',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
             }}
           >
-            <AlertCircle size={16} />
-            <span>{error}</span>
+            <CheckCircle2 size={16} />
+            <span>{conflictNotice}</span>
+          </div>
+        )}
+
+        {/* Error Banner with Explicit Retry Controls (M7.2) */}
+        {error && (
+          <div
+            role="alert"
+            style={{
+              backgroundColor: '#fef2f2',
+              color: '#991b1b',
+              padding: '12px 14px',
+              borderRadius: '12px',
+              border: '1px solid #fecaca',
+              fontSize: '13px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+
+            {pendingAttempt && !isSubmitting && (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (pendingAttempt.mode === 'VOICE' && pendingAttempt.audioBlob) {
+                      handleAudioReady(pendingAttempt.audioBlob, pendingAttempt.clientTurnId);
+                    } else if (pendingAttempt.mode === 'TEXT' && pendingAttempt.text) {
+                      executeTextTurn(pendingAttempt.text, pendingAttempt.clientTurnId);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: '#991b1b',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <RefreshCw size={14} />
+                  <span>ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ (Retry)</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -306,8 +419,8 @@ export const ConversationPage: React.FC<ConversationPageProps> = ({ onViewRecomm
           boxShadow: '0 -2px 10px rgba(0,0,0,0.04)',
         }}
       >
-        {/* Central Large Voice Button */}
-        <VoiceMicButton onAudioReady={handleAudioReady} disabled={isSubmitting} />
+        {/* Central Large Voice Button (Never auto-submits) */}
+        <VoiceMicButton onAudioReady={(blob) => handleAudioReady(blob)} disabled={isSubmitting} />
 
         {/* Text Fallback Input */}
         <form onSubmit={handleTextSubmit} style={{ display: 'flex', gap: '8px', width: '100%' }}>

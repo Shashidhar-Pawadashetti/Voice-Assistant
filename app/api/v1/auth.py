@@ -90,13 +90,19 @@ async def refresh_tokens_endpoint(
 )
 async def logout(
     request: Optional[LogoutRequest] = None,
+    authorization: Annotated[Optional[str], Header()] = None,
     current_farmer: Farmer = Depends(get_current_farmer),
     db: AsyncSession = Depends(get_db_session),
 ) -> dict:
-    """Revoke active refresh tokens for the authenticated farmer."""
+    """Revoke active refresh tokens and denylist calling access token for the authenticated farmer."""
     service = AuthService(db)
     token_str = request.refresh_token if request else None
-    await service.logout_farmer(current_farmer.id, refresh_token_str=token_str)
+    raw_token = None
+    if authorization and authorization.lower().startswith("bearer "):
+        parts = authorization.split()
+        if len(parts) == 2:
+            raw_token = parts[1]
+    await service.logout_farmer(current_farmer.id, refresh_token_str=token_str, current_access_token=raw_token)
     return {"message": "Successfully logged out"}
 
 

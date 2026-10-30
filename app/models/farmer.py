@@ -35,6 +35,7 @@ class Farmer(Base, TimestampMixin):
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    tokens_revoked_before: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     profile: Mapped["FarmerProfile"] = relationship("FarmerProfile", back_populates="farmer", uselist=False, cascade="all, delete-orphan")

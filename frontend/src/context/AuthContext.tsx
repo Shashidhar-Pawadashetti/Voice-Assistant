@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { FarmerResponse, LoginRequest, RegisterRequest } from '../types/auth';
 import { authService } from '../services/auth';
+import { revokeAudioBlobUrls } from '../services/audio';
 
 interface AuthContextType {
   farmer: FarmerResponse | null;
@@ -37,8 +38,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await authService.logout();
-    setFarmer(null);
+    try {
+      await authService.logout();
+    } catch {
+      // Guaranteed cleanup even if server request encounters offline network
+    } finally {
+      revokeAudioBlobUrls();
+      setFarmer(null);
+    }
   };
 
   const refreshProfile = async () => {

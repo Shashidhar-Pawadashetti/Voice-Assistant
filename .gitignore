@@ -48,11 +48,13 @@ temp/
 *.ogg
 *.webm
 
-# Database
+# Database & Backups
 *.sqlite
 *.sqlite3
 *.db
 pgdata/
+backups/*.dump
+backups/*.manifest.json
 
 # IDE & OS
 .idea/

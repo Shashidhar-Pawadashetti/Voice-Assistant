@@ -78,9 +78,15 @@ class Settings(BaseSettings):
     TTS_VOICE_GENDER: str = Field(default="female", description="Voice gender: female or male")
     TTS_MODEL_VERSION: str = Field(default="ai4bharat/indic_tts_kn_v1", description="Indic-TTS checkpoint version identifier")
 
-    # Security & Authentication (M5)
+    # Security & Authentication (M5, M7)
     JWT_SECRET_KEY: str | None = Field(default=None, description="Secret key for signing JWTs (falls back to APP_SECRET_KEY)")
     JWT_ALGORITHM: str = Field(default="HS256", description="Cryptographic algorithm for JWT access tokens")
+    ENCRYPTION_KEY: str | None = Field(default=None, description="Secret key for sensitive data encryption (falls back to APP_SECRET_KEY)")
+    ENCRYPTION_KEY_PREVIOUS: str = Field(default="", description="Comma-separated previous encryption keys for rotation support")
+    BLIND_INDEX_KEY: str | None = Field(default=None, description="Secret key for blind indexing phone numbers (falls back to APP_SECRET_KEY)")
+    REDIS_URL: str | None = Field(default=None, description="Redis connection URL for shared rate limiting and token revocation (e.g. redis://127.0.0.1:6379/0)")
+    REFRESH_TOKEN_ROTATION_GRACE_SECONDS: int = Field(default=30, description="Grace period in seconds for concurrent refresh token rotation")
+    ENABLE_PUBLIC_DOCS: bool = Field(default=False, description="Explicitly enable public OpenAPI docs in production")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, description="Access token lifespan in minutes (short-lived)")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="Refresh token lifespan in days")
     AUTH_RATE_LIMIT_LOGIN_MAX_ATTEMPTS: int = Field(default=5, description="Max login attempts allowed within window")
@@ -90,6 +96,16 @@ class Settings(BaseSettings):
     AUTH_LOCKOUT_ATTEMPTS: int = Field(default=5, description="Failed attempts before locking farmer account")
     AUTH_LOCKOUT_DURATION_MINUTES: int = Field(default=15, description="Account lockout duration in minutes")
     ALLOWED_HOSTS: str = Field(default="*", description="Allowed HTTP Host header values (comma-separated)")
+
+    # Model Concurrency & Backpressure (M7)
+    MAX_CONCURRENT_ASR_JOBS: int = Field(default=4, description="Max concurrent ASR jobs before backpressure")
+    MAX_CONCURRENT_LLM_JOBS: int = Field(default=4, description="Max concurrent LLM generation jobs before backpressure")
+    MAX_CONCURRENT_TTS_JOBS: int = Field(default=4, description="Max concurrent TTS synthesis jobs before backpressure")
+
+    @property
+    def encryption_keys_previous_list(self) -> List[str]:
+        """Return previous encryption keys for rotation fallback."""
+        return [k.strip() for k in self.ENCRYPTION_KEY_PREVIOUS.split(",") if k.strip()]
 
     @field_validator("CORS_ORIGINS")
     @classmethod

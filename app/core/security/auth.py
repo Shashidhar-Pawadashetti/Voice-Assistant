@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AuthenticationError
 from app.core.security.jwt import decode_access_token
+from app.core.security.revocation import get_token_revocation_store
 from app.database import get_db_session
 from app.models.farmer import Farmer
 
@@ -53,6 +54,13 @@ async def get_current_farmer(
     """
     payload = decode_access_token(token)
 
+    # 1. Immediate JTI Denylist check (M7.1)
+    jti = payload.get("jti")
+    if jti:
+        revocation_store = get_token_revocation_store()
+        if await revocation_store.is_access_token_revoked(jti):
+            raise AuthenticationError("Access token has been revoked")
+
     sub = payload.get("sub")
     if not sub:
         raise AuthenticationError("Token payload missing subject claim")
@@ -65,6 +73,13 @@ async def get_current_farmer(
     farmer = await db.get(Farmer, farmer_id)
     if not farmer:
         raise AuthenticationError("Farmer account not found or session revoked")
+
+    # 2. Check tokens_revoked_before (e.g. after password change, logout-all, or deletion)
+    if farmer.tokens_revoked_before:
+        iat = payload.get("iat")
+        revoked_before_ts = int(_ensure_utc(farmer.tokens_revoked_before).timestamp())
+        if iat is not None and iat < revoked_before_ts:
+            raise AuthenticationError("Session has been terminated. Please log in again.")
 
     now = datetime.now(timezone.utc)
 

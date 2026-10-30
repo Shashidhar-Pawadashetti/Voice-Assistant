@@ -212,3 +212,71 @@ async def test_account_lockout_after_multiple_failed_logins(db_session: AsyncSes
         )
         assert locked_res.status_code == 401
         assert "locked" in locked_res.json()["error"]["message"].lower()
+
+
+@pytest.mark.asyncio
+async def test_concurrent_refresh_token_rotation_safety(db_session: AsyncSession):
+    """Verify that parallel concurrent refresh calls with the same token do not trigger false family revocation."""
+    import asyncio
+
+    app = create_app()
+    app.dependency_overrides[get_db_session] = lambda: db_session
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        reg_res = await client.post(
+            "/api/v1/auth/register",
+            json={
+                "phone_number": "9555444333",
+                "password": "ConcurrentPass!2026",
+                "consent_given": True,
+            },
+        )
+        refresh_token = reg_res.json()["tokens"]["refresh_token"]
+
+        # Fire two concurrent refresh requests with the exact same initial refresh token
+        req1 = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+        req2 = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+
+        res1, res2 = await asyncio.gather(req1, req2)
+
+        # Both must succeed! (One performs rotation, second receives coordinated result without family revocation)
+        assert res1.status_code == 200
+        assert res2.status_code == 200
+        tokens1 = res1.json()
+        tokens2 = res2.json()
+        assert "access_token" in tokens1
+        assert "access_token" in tokens2
+
+
+@pytest.mark.asyncio
+async def test_immediate_access_token_revocation_on_logout(db_session: AsyncSession):
+    """Verify that an access token is immediately revoked upon logout (JTI denylist)."""
+    app = create_app()
+    app.dependency_overrides[get_db_session] = lambda: db_session
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        reg_res = await client.post(
+            "/api/v1/auth/register",
+            json={
+                "phone_number": "9444333222",
+                "password": "RevokeTestPass!2026",
+                "consent_given": True,
+            },
+        )
+        access_token = reg_res.json()["tokens"]["access_token"]
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        # Active token works
+        me_res1 = await client.get("/api/v1/auth/me", headers=headers)
+        assert me_res1.status_code == 200
+
+        # Logout with access token
+        logout_res = await client.post("/api/v1/auth/logout", headers=headers)
+        assert logout_res.status_code == 200
+
+        # Now access token must be immediately rejected (401 revoked)
+        me_res2 = await client.get("/api/v1/auth/me", headers=headers)
+        assert me_res2.status_code == 401
+        assert "revoked" in me_res2.json()["error"]["message"].lower()

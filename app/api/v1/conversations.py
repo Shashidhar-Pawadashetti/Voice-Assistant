@@ -121,6 +121,7 @@ async def submit_voice_turn_endpoint(
     file: Annotated[UploadFile, File(description="Uploaded audio file")],
     language: Annotated[str, Form(description="Language code")] = "kn",
     client_turn_id: Annotated[Optional[str], Form(description="Idempotency key")] = None,
+    expected_version: Annotated[Optional[int], Form(description="Expected conversation version for optimistic locking")] = None,
     farmer_id: uuid.UUID = Depends(get_current_farmer_id),
     service: ConversationService = Depends(get_conversation_service),
 ) -> TurnResponse:
@@ -142,6 +143,7 @@ async def submit_voice_turn_endpoint(
         input_mode="VOICE",
         audio_bytes=content,
         client_turn_id=client_turn_id,
+        expected_version=expected_version,
     )
 
 

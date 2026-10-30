@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test tests/i18n.test.ts tests/api_auth.test.ts tests/pwa.test.ts tests/scheme_card.test.ts"
+    "test": "node --experimental-strip-types --test tests/i18n.test.ts tests/api_auth.test.ts tests/pwa.test.ts tests/scheme_card.test.ts tests/e2e_journeys.test.ts"
   },
   "dependencies": {
     "lucide-react": "^0.454.0",

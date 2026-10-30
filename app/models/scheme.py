@@ -66,7 +66,7 @@ class RecommendationRun(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
     farmer_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("farmers.id", ondelete="CASCADE"), nullable=False)
-    conversation_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(GUID(), ForeignKey("conversations.id", ondelete="SET NULL"), nullable=True)
     profile_snapshot: Mapped[dict] = mapped_column(PortableJSON, nullable=False)
     scheme_rule_version_id: Mapped[uuid.UUID] = mapped_column(GUID(), ForeignKey("scheme_rule_versions.id", ondelete="RESTRICT"), nullable=False)
     evaluator_version: Mapped[str] = mapped_column(String(50), default="v0.1.0", nullable=False)

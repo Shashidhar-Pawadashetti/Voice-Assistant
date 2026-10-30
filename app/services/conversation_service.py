@@ -416,7 +416,11 @@ class ConversationService:
 
                 missing = IntentSlotResolver.get_missing_slots(current_intent, profile)
                 if not missing and not profile.conflicts:
-                    next_state = DialogueStateMachine.transition(current_state, DialogueState.EVALUATION_READY)
+                    if current_state == DialogueState.GREETING:
+                        intermediate = DialogueStateMachine.transition(current_state, DialogueState.COLLECTING_SLOTS)
+                        next_state = DialogueStateMachine.transition(intermediate, DialogueState.EVALUATION_READY)
+                    else:
+                        next_state = DialogueStateMachine.transition(current_state, DialogueState.EVALUATION_READY)
                 else:
                     next_state = DialogueStateMachine.transition(current_state, DialogueState.COLLECTING_SLOTS)
 
@@ -471,7 +475,11 @@ class ConversationService:
             elif profile.land_area and profile.land_area.is_ambiguous:
                 next_state = DialogueStateMachine.transition(current_state, DialogueState.CLARIFYING)
             elif not missing and not profile.conflicts:
-                next_state = DialogueStateMachine.transition(current_state, DialogueState.EVALUATION_READY)
+                if current_state == DialogueState.GREETING:
+                    intermediate = DialogueStateMachine.transition(current_state, DialogueState.COLLECTING_SLOTS)
+                    next_state = DialogueStateMachine.transition(intermediate, DialogueState.EVALUATION_READY)
+                else:
+                    next_state = DialogueStateMachine.transition(current_state, DialogueState.EVALUATION_READY)
             else:
                 next_state = (
                     DialogueStateMachine.transition(current_state, DialogueState.COLLECTING_SLOTS)
