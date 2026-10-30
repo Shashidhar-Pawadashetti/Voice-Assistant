@@ -262,3 +262,42 @@ class TTSUnavailableError(TTSModelError):
             retryable=True,
             details=details,
         )
+
+
+class InvalidStateTransitionError(KrishiMitraError):
+    """Raised when an illegal dialogue state transition is attempted."""
+
+    def __init__(self, from_state: str, to_state: str, details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=f"Invalid dialogue transition from '{from_state}' to '{to_state}'",
+            code="INVALID_STATE_TRANSITION",
+            status_code=400,
+            retryable=False,
+            details=details or {"from_state": from_state, "to_state": to_state},
+        )
+
+
+class OptimisticLockError(KrishiMitraError):
+    """Raised when concurrent updates conflict on a conversation version."""
+
+    def __init__(self, message: str = "Conversation was modified concurrently. Please retry.", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="CONCURRENCY_CONFLICT",
+            status_code=409,
+            retryable=True,
+            details=details,
+        )
+
+
+class ConversationExpiredError(KrishiMitraError):
+    """Raised when an operation is attempted on an expired or completed conversation."""
+
+    def __init__(self, message: str = "Conversation has expired or is already completed", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="CONVERSATION_EXPIRED",
+            status_code=410,
+            retryable=False,
+            details=details,
+        )

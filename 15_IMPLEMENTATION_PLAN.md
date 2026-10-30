@@ -101,6 +101,7 @@ Acceptance:
 - previously confirmed values are not requested again unnecessarily;
 - correction invalidates/recomputes affected recommendation results;
 - context is scoped to farmer and conversation.
+- **Status:** COMPLETED. (See `docs/M3_DIALOGUE_AND_PERSISTENT_MEMORY.md`, 142 tests passing, 87% coverage).
 
 ## M4 — Scheme engine
 

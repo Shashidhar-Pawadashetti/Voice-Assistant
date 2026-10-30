@@ -70,7 +70,8 @@ Start with [`START_PROMPT_FOR_ANTIGRAVITY.md`](START_PROMPT_FOR_ANTIGRAVITY.md) 
 - **M0 (Foundation & Schema-Constrained Extraction):** Complete. FastAPI backend, PostgreSQL 16 models & Alembic migrations, safe JSON structured logging with PII scrubbing, Ollama Qwen3 4B adapter with schema validation and bounded retry.
 - **M1 (Speech Pipeline & Voice Orchestration):** Complete. Audio validation/normalization (16 kHz mono WAV via FFmpeg), AI4Bharat IndicConformer ASR adapter, Indic-TTS adapter with numeral expansion, ephemeral audio lifecycle, end-to-end voice pipeline. See [`docs/M1_SPEECH_PIPELINE.md`](docs/M1_SPEECH_PIPELINE.md).
 - **M2 (Agricultural Understanding & Normalization):** Complete. Versioned Kannada agricultural vocabulary (`2026.10.1`), canonical Karnataka geographic hierarchy (31 districts & notified taluks), exact Decimal land normalization, tenure classification & provenance, natural Kannada correction handling, and multi-turn profile assembly without LLM eligibility calculation. See [`docs/M2_AGRICULTURAL_UNDERSTANDING.md`](docs/M2_AGRICULTURAL_UNDERSTANDING.md).
-- **Current Test Suite:** 121 passing tests, 87% coverage.
+- **M3 (Conversational Intelligence & Persistent Memory):** Complete. Deterministic dialogue state machine, intent-dependent slot requirements, slot confirmation and spoken correction routing, persistent conversation sessions in PostgreSQL, optimistic concurrency control, BOLA farmer ownership boundaries, and conversational Kannada follow-up questions. See [`docs/M3_DIALOGUE_AND_PERSISTENT_MEMORY.md`](docs/M3_DIALOGUE_AND_PERSISTENT_MEMORY.md).
+- **Current Test Suite:** 142 passing tests, 87% coverage.
 
 ## Change control
 

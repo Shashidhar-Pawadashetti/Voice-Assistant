@@ -65,6 +65,8 @@ Use structured typed fields/tables for frequently queried values. JSONB is accep
 
 No audio binary or public filesystem path belongs here.
 
+*(Implemented and verified with active persistence and optimistic version locking in Milestone M3).*
+
 ### `conversation_slots`
 
 - `id UUID PK`

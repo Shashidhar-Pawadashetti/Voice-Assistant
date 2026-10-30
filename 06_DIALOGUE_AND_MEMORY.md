@@ -24,6 +24,8 @@ Initial state enum:
 
 State transitions must be explicit and unit-tested. A user message cannot directly set the state; only the dialogue manager can.
 
+*Milestone M3 implemented DialogueState and DialogueStateMachine in `app/core/dialogue/state_machine.py` with explicit transition graph enforcement. See `docs/M3_DIALOGUE_AND_PERSISTENT_MEMORY.md`.*
+
 ## 3. Required flow
 
 ```text

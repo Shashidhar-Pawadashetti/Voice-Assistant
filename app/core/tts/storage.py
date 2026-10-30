@@ -49,6 +49,9 @@ class EphemeralAudioStore:
         self._owner_registry[audio_id] = owner_id
         return audio_id
 
+    # Alias store to save for consistency across providers
+    store = save
+
     async def get(self, audio_id: str, owner_id: Optional[str] = None) -> Optional[bytes]:
         """Retrieve stored audio bytes if valid, unexpired, and caller is authorized."""
         # Prevent path traversal

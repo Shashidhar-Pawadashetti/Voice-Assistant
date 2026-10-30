@@ -84,6 +84,8 @@ List only the authenticated farmer's conversations. Paginate.
 
 Return conversation metadata, current dialogue state and current allowed summary. Do not return raw audio or another farmer's content.
 
+*(Implemented in `/api/v1/conversations/{conversation_id}` as part of Milestone M3 with BOLA verification and optimistic concurrency).*
+
 ### DELETE `/conversations/{conversation_id}`
 
 Delete or schedule deletion of that farmer's conversation and linked content according to retention policy. Must verify ownership.

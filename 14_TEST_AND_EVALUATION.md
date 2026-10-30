@@ -78,6 +78,7 @@ Test that every synthetic output has `demo_only=true` and prominent demo label.
 - transcript is not stored when consent is absent or withdrawn;
 - log capture contains no audio/transcript/token/password/phone;
 - farmer A cannot retrieve farmer B conversation, job, recommendation, profile or audio response;
+  *(Verified in Milestone M3 via `test_farmer_ownership_isolation`).*
 - invalid/expired tokens denied;
 - refresh token rotation/revocation works;
 - deletion removes linked data/cache/audio and prevents job resurrection;

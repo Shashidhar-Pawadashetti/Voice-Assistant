@@ -10,6 +10,15 @@ from app.schemas.extraction import (
 )
 
 from app.schemas.voice import VoiceTurnResponse
+from app.schemas.conversation import (
+    CreateConversationRequest,
+    ConversationResponse,
+    ConversationListResponse,
+    TurnTextRequest,
+    ConversationTurnDTO,
+    ConversationHistoryResponse,
+    TurnResponse,
+)
 
 __all__ = [
     "LivenessResponse",
@@ -22,4 +31,11 @@ __all__ = [
     "ExtractionResult",
     "ExtractionRequest",
     "VoiceTurnResponse",
+    "CreateConversationRequest",
+    "ConversationResponse",
+    "ConversationListResponse",
+    "TurnTextRequest",
+    "ConversationTurnDTO",
+    "ConversationHistoryResponse",
+    "TurnResponse",
 ]
