@@ -1,0 +1,301 @@
+{
+  "timestamp": "2026-10-30 22:58:15 UTC",
+  "cohort_size": 20,
+  "regions_covered": [
+    "North Karnataka",
+    "Kalyana Karnataka",
+    "South Karnataka",
+    "Coastal Karnataka"
+  ],
+  "overall_success_rate_pct": 100.0,
+  "total_trial_duration_seconds": 14.05,
+  "latencies": {
+    "p50_ms": 88.63,
+    "p95_ms": 199.48,
+    "p99_ms": 238.68,
+    "mean_ms": 85.44,
+    "max_ms": 261.26
+  },
+  "task_metrics": [
+    {
+      "task_number": 1,
+      "description": "1. Registration, Login & DPDP Consent",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 2,
+      "description": "2. Starting and Resuming Conversation",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 3,
+      "description": "3. Kannada Voice Recording (16kHz WAV)",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 4,
+      "description": "4. District and Taluk Recognition",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 5,
+      "description": "5. Crop Identification (Canonical Crop)",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 6,
+      "description": "6. Land Area and Ownership Classification",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 7,
+      "description": "7. Spoken Correction and Negation Handling",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 8,
+      "description": "8. Scheme Recommendation & Kannada Explanation",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 9,
+      "description": "9. Authenticated Audio Response Playback",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 10,
+      "description": "10. Network Interruption & Idempotent Retry",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    },
+    {
+      "task_number": 11,
+      "description": "11. Privacy Data Export & Account Deletion",
+      "passed": 20,
+      "failed": 0,
+      "success_rate_pct": 100.0
+    }
+  ],
+  "farmer_results": [
+    {
+      "farmer_id": "F01",
+      "name": "\u0cae\u0cb2\u0ccd\u0cb2\u0caa\u0ccd\u0caa \u0c97\u0ccc\u0ca1\u0cb0\u0ccd",
+      "region": "North Karnataka",
+      "district": "\u0ca7\u0cbe\u0cb0\u0cb5\u0cbe\u0ca1",
+      "crop": "\u0cb9\u0cc6\u0cb8\u0cb0\u0cc1",
+      "land_acres": 3.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F02",
+      "name": "\u0c88\u0cb6\u0ccd\u0cb5\u0cb0\u0caa\u0ccd\u0caa \u0caa\u0cbe\u0c9f\u0cc0\u0cb2",
+      "region": "North Karnataka",
+      "district": "\u0cac\u0cc6\u0cb3\u0c97\u0cbe\u0cb5\u0cbf",
+      "crop": "\u0c95\u0cac\u0ccd\u0cac\u0cc1",
+      "land_acres": 5.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F03",
+      "name": "\u0cb0\u0cc7\u0ca3\u0cc1\u0c95\u0cbe \u0cb9\u0ca1\u0caa\u0ca6",
+      "region": "North Karnataka",
+      "district": "\u0cac\u0cbe\u0c97\u0cb2\u0c95\u0ccb\u0c9f\u0cc6",
+      "crop": "\u0c9c\u0ccb\u0cb3",
+      "land_acres": 2.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F04",
+      "name": "\u0cb6\u0cb0\u0ca3\u0caa\u0ccd\u0caa \u0cac\u0cbf\u0cb0\u0cbe\u0ca6\u0cbe\u0cb0",
+      "region": "North Karnataka",
+      "district": "\u0cb5\u0cbf\u0c9c\u0caf\u0caa\u0cc1\u0cb0",
+      "crop": "\u0ca4\u0cca\u0c97\u0cb0\u0cbf",
+      "land_acres": 4.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F05",
+      "name": "\u0cac\u0cb8\u0cb5\u0cb0\u0cbe\u0c9c \u0c95\u0c9f\u0ccd\u0c9f\u0cbf\u0cae\u0ca8\u0cbf",
+      "region": "North Karnataka",
+      "district": "\u0ca7\u0cbe\u0cb0\u0cb5\u0cbe\u0ca1",
+      "crop": "\u0cb6\u0cc7\u0c82\u0c97\u0cbe",
+      "land_acres": 1.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F06",
+      "name": "\u0cae\u0c82\u0c9c\u0cc1\u0ca8\u0cbe\u0ca5 \u0ca4\u0cb3\u0cb5\u0cbe\u0cb0",
+      "region": "North Karnataka",
+      "district": "\u0cac\u0cc6\u0cb3\u0c97\u0cbe\u0cb5\u0cbf",
+      "crop": "\u0cae\u0cc6\u0c95\u0ccd\u0c95\u0cc6\u0c9c\u0ccb\u0cb3",
+      "land_acres": 3.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F07",
+      "name": "\u0cb8\u0cbf\u0ca6\u0ccd\u0ca6\u0cb0\u0cbe\u0cae\u0caa\u0ccd\u0caa \u0caa\u0cc2\u0c9c\u0cbe\u0cb0\u0cbf",
+      "region": "Kalyana Karnataka",
+      "district": "\u0c95\u0cb2\u0cac\u0cc1\u0cb0\u0c97\u0cbf",
+      "crop": "\u0ca4\u0cca\u0c97\u0cb0\u0cbf",
+      "land_acres": 6.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F08",
+      "name": "\u0cae\u0cb9\u0cbe\u0ca6\u0cc7\u0cb5\u0cbf \u0c95\u0cae\u0cb2\u0cbe\u0caa\u0cc1\u0cb0",
+      "region": "Kalyana Karnataka",
+      "district": "\u0c95\u0cb2\u0cac\u0cc1\u0cb0\u0c97\u0cbf",
+      "crop": "\u0cb9\u0ca4\u0ccd\u0ca4\u0cbf",
+      "land_acres": 2.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F09",
+      "name": "\u0c9a\u0c82\u0ca6\u0ccd\u0cb0\u0cb6\u0cc7\u0c96\u0cb0 \u0ca8\u0cbe\u0caf\u0c95",
+      "region": "Kalyana Karnataka",
+      "district": "\u0cb0\u0cbe\u0caf\u0c9a\u0cc2\u0cb0\u0cc1",
+      "crop": "\u0cad\u0ca4\u0ccd\u0ca4",
+      "land_acres": 4.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F10",
+      "name": "\u0c85\u0c82\u0cac\u0ccd\u0cb0\u0cc7\u0cb6 \u0cac\u0cbf\u0cb2\u0c97\u0cc1\u0c82\u0ca6\u0cbf",
+      "region": "Kalyana Karnataka",
+      "district": "\u0cac\u0cc0\u0ca6\u0cb0\u0ccd",
+      "crop": "\u0cb9\u0cc6\u0cb8\u0cb0\u0cc1",
+      "land_acres": 3.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F11",
+      "name": "\u0ca8\u0cbe\u0c97\u0cae\u0ccd\u0cae \u0c95\u0cca\u0caa\u0ccd\u0caa\u0cb3",
+      "region": "Kalyana Karnataka",
+      "district": "\u0c95\u0cca\u0caa\u0ccd\u0caa\u0cb3",
+      "crop": "\u0cb8\u0c9c\u0ccd\u0c9c\u0cc6",
+      "land_acres": 2.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F12",
+      "name": "\u0c95\u0cc6\u0c82\u0caa\u0cc7\u0c97\u0ccc\u0ca1",
+      "region": "South Karnataka",
+      "district": "\u0cae\u0c82\u0ca1\u0ccd\u0caf",
+      "crop": "\u0c95\u0cac\u0ccd\u0cac\u0cc1",
+      "land_acres": 2.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F13",
+      "name": "\u0cae\u0c82\u0c9c\u0cc1\u0cb3\u0cbe \u0c97\u0ccc\u0ca1",
+      "region": "South Karnataka",
+      "district": "\u0cae\u0cc8\u0cb8\u0cc2\u0cb0\u0cc1",
+      "crop": "\u0cad\u0ca4\u0ccd\u0ca4",
+      "land_acres": 1.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F14",
+      "name": "\u0cb5\u0cc6\u0c82\u0c95\u0c9f\u0cc7\u0cb6 \u0cae\u0cc2\u0cb0\u0ccd\u0ca4\u0cbf",
+      "region": "South Karnataka",
+      "district": "\u0cb9\u0cbe\u0cb8\u0ca8",
+      "crop": "\u0cb0\u0cbe\u0c97\u0cbf",
+      "land_acres": 3.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F15",
+      "name": "\u0cb6\u0cbf\u0cb5\u0cb0\u0cbe\u0cae\u0cc7\u0c97\u0ccc\u0ca1",
+      "region": "South Karnataka",
+      "district": "\u0cae\u0c82\u0ca1\u0ccd\u0caf",
+      "crop": "\u0cb0\u0cbe\u0c97\u0cbf",
+      "land_acres": 4.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F16",
+      "name": "\u0ca6\u0ccd\u0caf\u0cbe\u0cb5\u0caa\u0ccd\u0caa \u0ca8\u0cbe\u0caf\u0ccd\u0c95",
+      "region": "South Karnataka",
+      "district": "\u0c9a\u0cbe\u0cae\u0cb0\u0cbe\u0c9c\u0ca8\u0c97\u0cb0",
+      "crop": "\u0cb0\u0cbe\u0c97\u0cbf",
+      "land_acres": 2.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F17",
+      "name": "\u0c86\u0ca8\u0c82\u0ca6 \u0cb9\u0cc6\u0c97\u0ccd\u0ca1\u0cc6",
+      "region": "Coastal Karnataka",
+      "district": "\u0c89\u0ca4\u0ccd\u0ca4\u0cb0 \u0c95\u0ca8\u0ccd\u0ca8\u0ca1",
+      "crop": "\u0c85\u0ca1\u0cbf\u0c95\u0cc6",
+      "land_acres": 1.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F18",
+      "name": "\u0caa\u0ccd\u0cb0\u0cb5\u0cc0\u0ca3 \u0cb6\u0cc6\u0c9f\u0ccd\u0c9f\u0cbf",
+      "region": "Coastal Karnataka",
+      "district": "\u0c89\u0ca1\u0cc1\u0caa\u0cbf",
+      "crop": "\u0cad\u0ca4\u0ccd\u0ca4",
+      "land_acres": 2.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F19",
+      "name": "\u0cb8\u0cc1\u0c9c\u0cbe\u0ca4\u0cbe \u0cb0\u0cc8",
+      "region": "Coastal Karnataka",
+      "district": "\u0ca6\u0c95\u0ccd\u0cb7\u0cbf\u0ca3 \u0c95\u0ca8\u0ccd\u0ca8\u0ca1",
+      "crop": "\u0c85\u0ca1\u0cbf\u0c95\u0cc6",
+      "land_acres": 1.0,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    },
+    {
+      "farmer_id": "F20",
+      "name": "\u0ca6\u0cbf\u0ca8\u0cc7\u0cb6 \u0caa\u0cc2\u0c9c\u0cbe\u0cb0\u0cbf",
+      "region": "Coastal Karnataka",
+      "district": "\u0c89\u0ca1\u0cc1\u0caa\u0cbf",
+      "crop": "\u0cad\u0ca4\u0ccd\u0ca4",
+      "land_acres": 2.5,
+      "scheme_governance_valid": true,
+      "status": "COMPLETED"
+    }
+  ],
+  "observations": []
+}

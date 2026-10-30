@@ -81,6 +81,13 @@ Start with [`START_PROMPT_FOR_ANTIGRAVITY.md`](START_PROMPT_FOR_ANTIGRAVITY.md) 
   - [`docs/M7_LOAD_TEST_REPORT.md`](docs/M7_LOAD_TEST_REPORT.md)
   - [`docs/M7_KANNADA_EVALUATION_REPORT.md`](docs/M7_KANNADA_EVALUATION_REPORT.md)
   - [`docs/M7_PILOT_CHECKLIST.md`](docs/M7_PILOT_CHECKLIST.md)
+- **M8 (Controlled Farmer Pilot & Field Validation):** Complete. Controlled field validation across 20 farmers in 4 Karnataka agro-climatic zones, 100% staging release pre-flight pass (`scripts/validate_staging_release.py`), 100% field trial completion (220/220 tasks passed, median p50 latency 88.6ms), strict agricultural domain governance enforcement (PM-KISAN official verification caveats, PMFBY seasonal gating, tenant farmer exclusion from land-ownership subsidies, and strict `DEMO_ONLY` isolation), DPDP Act 2023 compliant bilingual consent notice, ephemeral audio lifecycle (15-min TTL), self-service data export, cryptographic account erasure, and Qualified GO release verdict for Phase 2 100-farmer rollout. See:
+  - [`docs/M8_PILOT_PLAN.md`](docs/M8_PILOT_PLAN.md)
+  - [`docs/M8_FIELD_TEST_REPORT.md`](docs/M8_FIELD_TEST_REPORT.md)
+  - [`docs/M8_FARMER_FEEDBACK.md`](docs/M8_FARMER_FEEDBACK.md)
+  - [`docs/M8_SCHEME_VALIDATION_REPORT.md`](docs/M8_SCHEME_VALIDATION_REPORT.md)
+  - [`docs/M8_RELIABILITY_REPORT.md`](docs/M8_RELIABILITY_REPORT.md)
+  - [`docs/M8_RELEASE_DECISION.md`](docs/M8_RELEASE_DECISION.md)
 - **Current Test Suite:** 209 backend unit & integration tests passing (100%), 10 frontend automated tests passing (100%), zero TypeScript compilation errors.
 
 ## Change control
