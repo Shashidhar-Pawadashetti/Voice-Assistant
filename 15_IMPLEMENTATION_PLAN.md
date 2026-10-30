@@ -154,6 +154,7 @@ Acceptance:
 - disconnect/reconnect retrieves the same job result;
 - text fallback works;
 - TTS failure does not fail text response.
+- **Status:** COMPLETED. (See `docs/M6_FRONTEND_INTEGRATION.md`, React + Vite PWA built in `frontend/`, 7 automated frontend tests passing, 201 backend tests passing).
 
 ## M7 — Performance and production readiness
 

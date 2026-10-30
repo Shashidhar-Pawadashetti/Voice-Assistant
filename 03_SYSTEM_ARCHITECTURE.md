@@ -90,3 +90,13 @@ Farmer browser
 - LLM never calls the scheme rule evaluator with free-form arguments; application code builds typed inputs.
 - Rule evaluation output is immutable for a given profile snapshot and rule version.
 - TTS output is transient by default.
+
+## 8. Client PWA architecture (Milestone M6)
+
+Implemented in `frontend/`:
+- **Progressive Web App**: Installable web app with W3C web manifest (`manifest.json`) and service worker (`sw.js`).
+- **Application Shell Caching**: Pre-caches static HTML, JS, CSS, icons, and native Kannada typography.
+- **Strict Privacy Invariant**: Service worker explicitly bypasses caching for `/api/*` and `/health/*`. No authenticated responses or farmer PII are stored in public cache storage.
+- **Voice-First Input**: W3C `MediaRecorder` captures audio in `audio/webm;codecs=opus`. Tactile visual indicator with live recording timer. Recording finishes and submits strictly on explicit user action (never auto-submitting).
+- **Authenticated Audio Playback**: Fetches owner-bound synthesized speech with Bearer authorization, converts to an ephemeral Blob URL, and plays via HTML5 Audio element.
+- **Offline Detection**: Real-time network listener displays persistent offline notice and disables new voice uploads while disconnected.

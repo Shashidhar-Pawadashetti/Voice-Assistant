@@ -136,5 +136,14 @@ Do not publish a concurrency number without the machine specification, software/
 > - Integration tests for BOLA defense, cross-farmer isolation, header spoofing rejection, and audio access control in `tests/integration/test_authorization_bola.py`.
 > - Integration tests for DPDP data export and password-verified erasure workflows in `tests/integration/test_privacy_lifecycle.py`.
 > - Full test suite: **201 passed**, **90% statement coverage**.
+>
+> **Milestone M6 Test Deliverables:**
+> - Frontend automated unit test suite in `frontend/tests/`:
+>   - `i18n.test.ts`: Verifies complete native Kannada dictionary, dialogue states, and statutory disclaimers.
+>   - `api_auth.test.ts`: Verifies in-memory token storage, Bearer header injection, and logout cleanup.
+>   - `pwa.test.ts`: Verifies PWA `manifest.json` standalone configuration and `sw.js` invariant enforcing zero caching on `/api/*`.
+>   - `scheme_card.test.ts`: Verifies `DEMO_ONLY` flags, official verification requirements, and recommendation status badges.
+> - Frontend production build verification (`tsc && vite build`): bundle compiled and minified with zero TypeScript errors.
+> - Backend integration verification: all 201 backend tests passing with zero regressions.
 
 Exact percentage thresholds for WER, intent accuracy and slot extraction must be set after the first baseline and reviewed with native Kannada speakers; do not fabricate a quality number in advance.

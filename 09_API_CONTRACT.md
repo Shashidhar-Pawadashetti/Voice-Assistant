@@ -304,3 +304,12 @@ Configurable per farmer/IP limits for login, audio upload, text turns and pollin
 ## 12. API contract ownership
 
 The backend team must publish OpenAPI JSON from FastAPI. The website team should integrate against that contract and not rely on private Python functions or direct model ports.
+
+## 13. Frontend client integration (Milestone M6)
+
+The farmer-facing Progressive Web App (PWA) in `frontend/` integrates directly with these endpoints:
+- **Authentication**: `frontend/src/services/auth.ts` manages login, registration, token refresh, and session restoration.
+- **Voice & Turn Dialogue**: `frontend/src/services/conversation.ts` formats multipart audio uploads and text turns with unique `client_turn_id` idempotency keys and `expected_version` optimistic locking.
+- **Audio Retrieval**: `frontend/src/services/audio.ts` uses authenticated fetch to pass `Authorization: Bearer <token>` to `GET /api/v1/voice/audio/{id}` and generates temporary local Blob URLs (`URL.createObjectURL`).
+- **Scheme Recommendations**: `frontend/src/services/scheme.ts` consumes recommendation results and transparent explanation traces.
+- **DPDP Rights**: `frontend/src/services/privacy.ts` provides machine-readable export and password-verified erasure.
