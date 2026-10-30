@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: krishi_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: krishi_app
+      POSTGRES_PASSWORD: krishi_mitra_dev_pass
+      POSTGRES_DB: krishi_mitra
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U krishi_app -d krishi_mitra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: krishi_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      APP_SECRET_KEY: dev-insecure-secret-key-change-in-production-min32chars
+      DATABASE_URL: postgresql+psycopg://krishi_app:krishi_mitra_dev_pass@db:5432/krishi_mitra
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: qwen3:4b
+      AUDIO_TEMP_DIR: /app/.runtime/audio
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  pgdata:

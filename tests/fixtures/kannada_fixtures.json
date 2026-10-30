@@ -1,0 +1,119 @@
+{
+  "fixtures": [
+    {
+      "id": "utt_001_greeting",
+      "text": "ನಮಸ್ಕಾರ, ನನಗೆ ಸರ್ಕಾರದ ಯೋಜನೆಗಳ ಮಾಹಿತಿ ಬೇಕು",
+      "region": "Standard",
+      "expected_intent": "FIND_SCHEMES",
+      "expected_entities": []
+    },
+    {
+      "id": "utt_002_dharwad_sorghum",
+      "text": "ನಾನು ಧಾರವಾಡ ಜಿಲ್ಲೆಯವನು, ನಾಲ್ಕು ಎಕರೆ ಜಮೀನಿನಲ್ಲಿ ಜೋಳ ಬೆಳೆದಿದ್ದೇನೆ",
+      "region": "North Karnataka / Dharwad",
+      "expected_intent": "FIND_SCHEMES",
+      "expected_entities": [
+        {
+          "slot": "district",
+          "raw_value": "ಧಾರವಾಡ",
+          "canonical_value": "DHARWAD",
+          "value_type": "string"
+        },
+        {
+          "slot": "land_area",
+          "raw_value": "ನಾಲ್ಕು ಎಕರೆ",
+          "canonical_value": 4.0,
+          "value_type": "number"
+        },
+        {
+          "slot": "crop",
+          "raw_value": "ಜೋಳ",
+          "canonical_value": "SORGHUM",
+          "value_type": "string"
+        }
+      ]
+    },
+    {
+      "id": "utt_003_drip_irrigation_code_mixed",
+      "text": "ನನ್ನ ತೋಟಕ್ಕೆ drip irrigation ಸಬ್ಸಿಡಿ ಸಿಗುತ್ತಾ?",
+      "region": "Code-mixed Kannada-English",
+      "expected_intent": "MICRO_IRRIGATION",
+      "expected_entities": [
+        {
+          "slot": "irrigation_type",
+          "raw_value": "drip irrigation",
+          "canonical_value": "DRIP",
+          "value_type": "string"
+        }
+      ]
+    },
+    {
+      "id": "utt_004_crop_insurance_pmfby",
+      "text": "ಮಳೆಯಿಂದ ರಾಗಿ ಬೆಳೆ ಹಾಳಾಗಿದೆ, ಫಸಲ್ ಬಿಮಾ ಯೋಜನೆಗೆ ಅರ್ಜಿ ಹಾಕಬಹುದಾ?",
+      "region": "Southern Karnataka",
+      "expected_intent": "CROP_INSURANCE",
+      "expected_entities": [
+        {
+          "slot": "crop",
+          "raw_value": "ರಾಗಿ",
+          "canonical_value": "FINGER_MILLET",
+          "value_type": "string"
+        }
+      ]
+    },
+    {
+      "id": "utt_005_correction_area",
+      "text": "ಇಲ್ಲ, ನಾಲ್ಕು ಎಕರೆ ಅಲ್ಲ, ಮೂರೂವರೆ ಎಕರೆ",
+      "region": "Correction",
+      "expected_intent": "CORRECT_PREVIOUS_ANSWER",
+      "expected_correction_target": "land_area",
+      "expected_entities": [
+        {
+          "slot": "land_area",
+          "raw_value": "ಮೂರೂವರೆ ಎಕರೆ",
+          "canonical_value": 3.5,
+          "value_type": "number"
+        }
+      ]
+    },
+    {
+      "id": "utt_006_income_support",
+      "text": "ಪಿಎಂ ಕಿಸಾನ್ ಹಣ ಯಾವಾಗ ಬರುತ್ತೆ?",
+      "region": "Income Support",
+      "expected_intent": "INCOME_SUPPORT",
+      "expected_entities": []
+    },
+    {
+      "id": "utt_007_belagavi_sugar_tenant",
+      "text": "ಬೆಳಗಾವಿಯಲ್ಲಿ 2 ಹೆಕ್ಟೇರ್ ಕಬ್ಬು ಇದೆ, ಜಮೀನು ಲೀಸ್ ಮೇಲೆ ತಗೊಂಡಿದೀನಿ",
+      "region": "North Karnataka / Belagavi",
+      "expected_intent": "FIND_SCHEMES",
+      "expected_entities": [
+        {
+          "slot": "district",
+          "raw_value": "ಬೆಳಗಾವಿ",
+          "canonical_value": "BELAGAVI",
+          "value_type": "string"
+        },
+        {
+          "slot": "crop",
+          "raw_value": "ಕಬ್ಬು",
+          "canonical_value": "SUGARCANE",
+          "value_type": "string"
+        },
+        {
+          "slot": "land_area",
+          "raw_value": "2 ಹೆಕ್ಟೇರ್",
+          "canonical_value": 2.0,
+          "value_type": "number"
+        },
+        {
+          "slot": "land_ownership",
+          "raw_value": "ಲೀಸ್",
+          "canonical_value": "TENANT",
+          "value_type": "string"
+        }
+      ]
+    }
+  ]
+}
