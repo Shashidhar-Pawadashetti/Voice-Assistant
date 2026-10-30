@@ -27,6 +27,23 @@ from app.schemas.scheme import (
     RecommendationEvaluationResponse,
 )
 
+from app.schemas.auth import (
+    RegisterRequest,
+    RegisterResponse,
+    LoginRequest,
+    TokenResponse,
+    RefreshTokenRequest,
+    LogoutRequest,
+    ChangePasswordRequest,
+    FarmerResponse,
+)
+
+from app.schemas.privacy import (
+    DataExportResponse,
+    DeletionRequestPayload,
+    DeletionResponse,
+)
+
 __all__ = [
     "LivenessResponse",
     "ReadinessResponse",

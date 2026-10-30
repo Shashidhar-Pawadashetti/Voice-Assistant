@@ -18,6 +18,8 @@ os.environ["OLLAMA_MODEL"] = "qwen3:4b"
 
 from app.config import Settings, get_settings
 from app.core.llm.interface import LanguageModel
+from app.core.security.jwt import create_access_token
+from app.core.security.rate_limiter import get_rate_limiter
 from app.main import create_app
 from app.models.base import Base
 
@@ -28,6 +30,22 @@ def reset_settings_cache():
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def reset_rate_limiter_fixture():
+    """Clear rate limiting state between tests."""
+    await get_rate_limiter().clear_all()
+    yield
+    await get_rate_limiter().clear_all()
+
+
+def auth_headers_for(farmer_id: Any) -> dict[str, str]:
+    """Helper returning Bearer Authorization header for test farmer."""
+    import uuid
+    fid = farmer_id if isinstance(farmer_id, uuid.UUID) else uuid.UUID(str(farmer_id))
+    token = create_access_token(fid)
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest_asyncio.fixture

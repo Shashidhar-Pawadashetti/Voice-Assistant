@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -31,12 +31,16 @@ class Farmer(Base, TimestampMixin):
     account_status: Mapped[str] = mapped_column(
         String(20), default="ACTIVE", nullable=False
     )  # ACTIVE, LOCKED, DELETION_PENDING, DELETED
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     profile: Mapped["FarmerProfile"] = relationship("FarmerProfile", back_populates="farmer", uselist=False, cascade="all, delete-orphan")
     conversations: Mapped[list["Conversation"]] = relationship("Conversation", back_populates="farmer", cascade="all, delete-orphan")
     consent_records: Mapped[list["ConsentRecord"]] = relationship("ConsentRecord", back_populates="farmer", cascade="all, delete-orphan")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="farmer", cascade="all, delete-orphan")
 
 
 class FarmerProfile(Base):

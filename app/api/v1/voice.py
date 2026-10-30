@@ -5,7 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 
 from app.core.exceptions import AudioValidationError, ResourceNotFoundError
+from app.core.security.auth import get_current_farmer
 from app.core.tts.storage import EphemeralAudioStore, get_ephemeral_audio_store
+from app.models.farmer import Farmer
 from app.schemas.voice import VoiceTurnResponse
 from app.services.voice_pipeline import VoicePipelineService
 
@@ -29,6 +31,7 @@ def get_voice_pipeline() -> VoicePipelineService:
 async def process_voice_turn_endpoint(
     file: Annotated[UploadFile, File(description="Uploaded audio file")],
     language: Annotated[str, Form(description="ISO-639-1 language code (default 'kn')")] = "kn",
+    current_farmer: Farmer = Depends(get_current_farmer),
     service: VoicePipelineService = Depends(get_voice_pipeline),
 ) -> VoiceTurnResponse:
     """Process voice turn and return transcript, entities, and speech response."""
@@ -43,7 +46,11 @@ async def process_voice_turn_endpoint(
     if not content:
         raise AudioValidationError("Uploaded audio file is empty (0 bytes)")
 
-    return await service.process_voice_turn(content, language=language)
+    return await service.process_voice_turn(
+        content,
+        language=language,
+        owner_id=str(current_farmer.id),
+    )
 
 
 @router.get(
@@ -55,15 +62,17 @@ async def process_voice_turn_endpoint(
             "content": {"audio/wav": {}},
             "description": "PCM WAV audio stream",
         },
+        401: {"description": "Missing or invalid authentication"},
         404: {"description": "Audio not found or expired"},
     },
 )
 async def get_response_audio_endpoint(
     audio_id: str,
+    current_farmer: Farmer = Depends(get_current_farmer),
     store: EphemeralAudioStore = Depends(get_ephemeral_audio_store),
 ) -> Response:
-    """Retrieve temporary playback audio by audio_id."""
-    audio_bytes = await store.get(audio_id)
+    """Retrieve temporary playback audio by audio_id with strict owner authorization."""
+    audio_bytes = await store.get(audio_id, owner_id=str(current_farmer.id))
 
     if audio_bytes is None:
         raise ResourceNotFoundError(

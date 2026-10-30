@@ -18,6 +18,7 @@ from app.core.asr.mock import MockSpeechRecognizer
 from app.core.dialogue.state_machine import DialogueState
 from app.core.llm.extractor import SchemeExtractor
 from app.core.scheme.enums import RecommendationStatus, SchemeClassification
+from app.core.security.jwt import create_access_token
 from app.core.tts.mock import MockSpeechSynthesizer
 from app.core.tts.storage import EphemeralAudioStore
 from app.database import get_db_session
@@ -84,13 +85,14 @@ async def test_dialogue_scheme_recommendation_automatic_evaluation(
     app = create_app()
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
     app.dependency_overrides[get_db_session] = lambda: db_session
+    auth_headers = {"Authorization": f"Bearer {create_access_token(DEV_FARMER_ID)}"}
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Step 1: Create conversation
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn", "initial_intent": "INCOME_SUPPORT"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert create_resp.status_code == 201
         conv_id = create_resp.json()["conversation_id"]
@@ -100,7 +102,7 @@ async def test_dialogue_scheme_recommendation_automatic_evaluation(
         turn1_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನನ್ನ ಊರು ಧಾರವಾಡ ಜಿಲ್ಲೆ. 3 ಎಕರೆ ಸ್ವಂತ ಜಮೀನಿದೆ."},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn1_resp.status_code == 200
         t1 = turn1_resp.json()
@@ -112,7 +114,7 @@ async def test_dialogue_scheme_recommendation_automatic_evaluation(
         turn2_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ಹೌದು, ಸರಿ"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn2_resp.status_code == 200
         t2 = turn2_resp.json()

@@ -16,14 +16,32 @@
 ### `farmers`
 
 - `id UUID PK`
-- `phone_number_encrypted` or safely protected identifier; store a normalized search hash separately if needed
-- `password_hash` (Argon2id)
-- `preferred_language` default `kn`
-- `account_status` (`ACTIVE`, `LOCKED`, `DELETION_PENDING`, `DELETED`)
+- `phone_number_encrypted TEXT` (AES-256-GCM encrypted E.164 phone number)
+- `phone_number_hash VARCHAR(64) UNIQUE INDEX` (HMAC-SHA256 blind index for search/login)
+- `password_hash VARCHAR(255)` (Argon2id adaptive password hash)
+- `preferred_language VARCHAR(10) DEFAULT 'kn'`
+- `account_status VARCHAR(20)` (`ACTIVE`, `LOCKED`, `DELETION_PENDING`, `DELETED`)
+- `failed_login_attempts INTEGER DEFAULT 0`
+- `locked_until TIMESTAMPTZ NULL` (exponential lockout expiration)
+- `deleted_at TIMESTAMPTZ NULL` (DPDP erasure timestamp)
 - `created_at`, `updated_at`, `last_login_at`
-- consent version/records should be in dedicated consent table
+- consent version/records are in dedicated `consent_records` table
 
-Never store password plaintext or OTP secrets. Decide phone encryption/index approach before adding production registrations.
+Never store password plaintext or OTP secrets.
+
+### `refresh_tokens`
+
+- `id UUID PK`
+- `farmer_id UUID FK INDEX`
+- `family_id UUID INDEX` (Token family ID for automatic reuse revocation)
+- `token_hash VARCHAR(64) UNIQUE INDEX` (SHA-256 hash of plaintext token; plaintext is never stored)
+- `is_revoked BOOLEAN DEFAULT FALSE`
+- `expires_at TIMESTAMPTZ`
+- `revoked_at TIMESTAMPTZ NULL`
+- `replaced_by_id UUID FK NULL` (Points to successor token upon rotation)
+- `created_at TIMESTAMPTZ`
+
+*(Implemented and migrated in Milestone M5 via Alembic `0004_auth_and_security_m5.py`).*
 
 ### `farmer_profiles`
 

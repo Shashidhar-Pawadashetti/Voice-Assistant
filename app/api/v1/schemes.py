@@ -12,7 +12,9 @@ from app.core.exceptions import ConversationOwnershipError, NotFoundError
 from app.core.profile.assembler import AgriculturalProfileAssembler
 from app.core.scheme.catalog import ALL_SCHEMES, SCHEMES_BY_ID
 from app.core.scheme.enums import SchemeClassification
+from app.core.security.auth import get_current_farmer
 from app.database import get_db_session
+from app.models.farmer import Farmer
 from app.schemas.scheme import (
     RecommendationEvaluationResponse,
     RecommendationRunResponse,
@@ -113,23 +115,11 @@ async def get_scheme_detail(
 )
 async def evaluate_conversation_recommendations(
     conversation_id: uuid.UUID,
-    x_farmer_id: Optional[str] = Header(None, alias="x-farmer-id"),
+    current_farmer: Farmer = Depends(get_current_farmer),
     db: AsyncSession = Depends(get_db_session),
 ) -> RecommendationEvaluationResponse:
     """Evaluate applicable government schemes against conversation agricultural profile."""
-    if not x_farmer_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Header 'x-farmer-id' is mandatory.",
-        )
-    try:
-        farmer_uuid = uuid.UUID(x_farmer_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Header 'x-farmer-id' must be a valid UUID.",
-        )
-
+    farmer_uuid = current_farmer.id
     conv_service = ConversationService(db)
     rec_service = RecommendationService(db)
 
@@ -166,23 +156,11 @@ async def evaluate_conversation_recommendations(
 )
 async def list_conversation_recommendation_history(
     conversation_id: uuid.UUID,
-    x_farmer_id: Optional[str] = Header(None, alias="x-farmer-id"),
+    current_farmer: Farmer = Depends(get_current_farmer),
     db: AsyncSession = Depends(get_db_session),
 ) -> List[RecommendationRunResponse]:
     """Retrieve immutable historical recommendation runs for a conversation."""
-    if not x_farmer_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Header 'x-farmer-id' is mandatory.",
-        )
-    try:
-        farmer_uuid = uuid.UUID(x_farmer_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Header 'x-farmer-id' must be a valid UUID.",
-        )
-
+    farmer_uuid = current_farmer.id
     rec_service = RecommendationService(db)
     try:
         runs = await rec_service.get_conversation_recommendations(

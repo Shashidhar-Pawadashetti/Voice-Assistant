@@ -9,8 +9,10 @@ from app.api.v1.conversations import DEV_FARMER_ID, get_conversation_service
 from app.core.asr.mock import MockSpeechRecognizer
 from app.core.dialogue.state_machine import DialogueState
 from app.core.llm.extractor import SchemeExtractor
+from app.core.security.jwt import create_access_token
 from app.core.tts.mock import MockSpeechSynthesizer
 from app.core.tts.storage import EphemeralAudioStore
+from app.database import get_db_session
 from app.main import create_app
 from app.models.farmer import Farmer
 from app.services.conversation_service import ConversationService
@@ -54,6 +56,10 @@ def mock_conversation_service(db_session: AsyncSession, tmp_path):
 async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farmer: Farmer, mock_conversation_service):
     app = create_app()
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
+    app.dependency_overrides[get_db_session] = lambda: db_session
+
+    token = create_access_token(DEV_FARMER_ID)
+    auth_headers = {"Authorization": f"Bearer {token}"}
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -61,7 +67,7 @@ async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farm
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn", "initial_intent": "INCOME_SUPPORT"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert create_resp.status_code == 201
         data = create_resp.json()
@@ -73,7 +79,7 @@ async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farm
         # 2. Get Active Conversation
         active_resp = await client.get(
             "/api/v1/conversations/active",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert active_resp.status_code == 200
         assert active_resp.json()["conversation_id"] == conv_id
@@ -81,7 +87,7 @@ async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farm
         # 3. Retrieve Conversation by ID
         get_resp = await client.get(
             f"/api/v1/conversations/{conv_id}",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert get_resp.status_code == 200
         assert get_resp.json()["conversation_id"] == conv_id
@@ -89,7 +95,7 @@ async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farm
         # 4. List Farmer Conversations
         list_resp = await client.get(
             "/api/v1/conversations",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert list_resp.status_code == 200
         list_data = list_resp.json()
@@ -99,7 +105,7 @@ async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farm
         # 5. Complete Conversation
         comp_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/complete",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert comp_resp.status_code == 200
         assert comp_resp.json()["status"] == "COMPLETED"
@@ -108,6 +114,6 @@ async def test_conversation_lifecycle_flow(db_session: AsyncSession, seeded_farm
         # 6. Cannot resume or submit turns to a completed conversation
         resume_fail = await client.post(
             f"/api/v1/conversations/{conv_id}/resume",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert resume_fail.status_code == 410

@@ -25,6 +25,8 @@ dependencies = [
     "tenacity>=8.2.3",
     "python-multipart>=0.0.9",
     "argon2-cffi>=23.1.0",
+    "cryptography>=42.0.0",
+    "pyjwt>=2.8.0",
     "imageio-ffmpeg>=0.5.1",
 ]
 
@@ -51,4 +53,5 @@ addopts = "-v --tb=short"
 
 [tool.coverage.run]
 source = ["app"]
+concurrency = ["greenlet", "thread"]
 omit = ["tests/*", "alembic/*"]

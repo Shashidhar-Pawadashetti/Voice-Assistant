@@ -124,6 +124,17 @@ Do not publish a concurrency number without the machine specification, software/
 > - Repository, explainability and BOLA tests in `tests/unit/test_recommendation_service.py`.
 > - End-to-end scheme recommendation integration tests in `tests/integration/test_scheme_recommendation.py`.
 > - M3 dialogue and automatic scheme evaluation tests in `tests/integration/test_dialogue_scheme_integration.py`.
-> - Full test suite: 165 passed, 87% statement coverage.
+>
+> **Milestone M5 Test Deliverables:**
+> - Unit tests for Argon2id hashing, salt uniqueness, and timing mitigation in `tests/unit/test_security_password.py`.
+> - Unit tests for E.164 phone normalization, HMAC-SHA256 blind indexing, and AES-256-GCM encryption in `tests/unit/test_security_crypto.py`.
+> - Unit tests for JWT access token signing, decoding, expiration, and refresh token pair generation in `tests/unit/test_security_jwt.py`.
+> - Unit tests for sliding-window rate limiting in `tests/unit/test_security_rate_limiter.py`.
+> - Unit tests for audio store owner binding, multi-worker metadata sidecars, and path traversal defense in `tests/unit/test_security_audio_store.py`.
+> - Unit tests for `AuthService`, `PrivacyService`, and `get_current_farmer` dependency edge cases in `tests/unit/test_security_services.py`.
+> - Integration tests for registration, login enumeration prevention, refresh token rotation, family reuse revocation, logout, and lockout in `tests/integration/test_auth_endpoints.py`.
+> - Integration tests for BOLA defense, cross-farmer isolation, header spoofing rejection, and audio access control in `tests/integration/test_authorization_bola.py`.
+> - Integration tests for DPDP data export and password-verified erasure workflows in `tests/integration/test_privacy_lifecycle.py`.
+> - Full test suite: **201 passed**, **90% statement coverage**.
 
 Exact percentage thresholds for WER, intent accuracy and slot extraction must be set after the first baseline and reviewed with native Kannada speakers; do not fabricate a quality number in advance.

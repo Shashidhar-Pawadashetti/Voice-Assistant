@@ -2,6 +2,7 @@
 
 from app.models.base import Base, GUID, TimestampMixin
 from app.models.farmer import Farmer, FarmerProfile, ConsentRecord
+from app.models.auth import RefreshToken
 from app.models.conversation import Conversation, ConversationTurn, ConversationSlot
 from app.models.scheme import Scheme, SchemeRuleVersion, RecommendationRun
 from app.models.job import Job
@@ -12,6 +13,7 @@ __all__ = [
     "GUID",
     "TimestampMixin",
     "Farmer",
+    "RefreshToken",
     "FarmerProfile",
     "ConsentRecord",
     "Conversation",

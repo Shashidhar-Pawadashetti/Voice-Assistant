@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, File, Form, Header, Query, UploadFile, s
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AuthenticationError, AudioValidationError, ResourceNotFoundError
+from app.core.security.auth import get_current_farmer_id
 from app.database import get_db_session
 from app.schemas.conversation import (
     ConversationHistoryResponse,
@@ -24,20 +25,8 @@ logger = logging.getLogger("krishi.api.conversations")
 router = APIRouter(prefix="/conversations", tags=["Conversations"])
 
 
-# Deterministic fallback farmer ID for unauthenticated dev/testing
+# Legacy deterministic farmer UUID kept for fixture compatibility
 DEV_FARMER_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
-
-
-def get_current_farmer_id(
-    x_farmer_id: Annotated[Optional[str], Header(alias="X-Farmer-ID", description="Authenticated Farmer UUID")] = None,
-) -> uuid.UUID:
-    """Extract and validate farmer identity for ownership isolation (BOLA protection)."""
-    if x_farmer_id:
-        try:
-            return uuid.UUID(x_farmer_id)
-        except ValueError:
-            raise AuthenticationError(f"Invalid X-Farmer-ID header: '{x_farmer_id}' is not a valid UUID")
-    return DEV_FARMER_ID
 
 
 def get_conversation_service(

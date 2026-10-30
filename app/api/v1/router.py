@@ -6,12 +6,16 @@ from app.api.v1.extraction import router as extraction_router
 from app.api.v1.voice import router as voice_router
 from app.api.v1.conversations import router as conversations_router
 from app.api.v1.schemes import router as schemes_router
+from app.api.v1.auth import router as auth_router
+from app.api.v1.privacy import router as privacy_router
 
 
 api_v1_router = APIRouter()
 
 # Mount health endpoints under /api/v1 as well as root
 api_v1_router.include_router(health_router)
+api_v1_router.include_router(auth_router)
+api_v1_router.include_router(privacy_router)
 api_v1_router.include_router(extraction_router)
 api_v1_router.include_router(voice_router)
 api_v1_router.include_router(conversations_router)

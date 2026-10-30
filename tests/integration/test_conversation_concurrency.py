@@ -9,8 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.conversations import DEV_FARMER_ID, get_conversation_service
 from app.core.asr.mock import MockSpeechRecognizer
 from app.core.llm.extractor import SchemeExtractor
+from app.core.security.jwt import create_access_token
 from app.core.tts.mock import MockSpeechSynthesizer
 from app.core.tts.storage import EphemeralAudioStore
+from app.database import get_db_session
 from app.main import create_app
 from app.models.conversation import Conversation
 from app.models.farmer import Farmer
@@ -57,6 +59,10 @@ async def test_optimistic_concurrency_conflict(
 ):
     app = create_app()
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
+    app.dependency_overrides[get_db_session] = lambda: db_session
+
+    token = create_access_token(DEV_FARMER_ID)
+    auth_headers = {"Authorization": f"Bearer {token}"}
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -64,8 +70,9 @@ async def test_optimistic_concurrency_conflict(
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
+        assert create_resp.status_code == 201
         conv_id = create_resp.json()["conversation_id"]
 
         # Simulate concurrent external update incrementing version
@@ -81,7 +88,7 @@ async def test_optimistic_concurrency_conflict(
         resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನಾನು ಧಾರವಾಡದ ರೈತ", "expected_version": 1},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert resp.status_code == 409
         body = resp.json()

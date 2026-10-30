@@ -11,8 +11,10 @@ from app.api.v1.conversations import DEV_FARMER_ID, get_conversation_service
 from app.core.asr.mock import MockSpeechRecognizer
 from app.core.dialogue.state_machine import DialogueState
 from app.core.llm.extractor import SchemeExtractor
+from app.core.security.jwt import create_access_token
 from app.core.tts.mock import MockSpeechSynthesizer
 from app.core.tts.storage import EphemeralAudioStore
+from app.database import get_db_session
 from app.main import create_app
 from app.models.farmer import Farmer
 from app.services.conversation_service import ConversationService
@@ -59,6 +61,8 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
 ):
     app = create_app()
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
+    app.dependency_overrides[get_db_session] = lambda: db_session
+    auth_headers = {"Authorization": f"Bearer {create_access_token(DEV_FARMER_ID)}"}
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -66,7 +70,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn", "initial_intent": "INCOME_SUPPORT"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         conv_id = create_resp.json()["conversation_id"]
 
@@ -74,7 +78,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         turn1_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನಾನು ಧಾರವಾಡ ಜಿಲ್ಲೆಯ ರೈತ"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn1_resp.status_code == 200
         t1 = turn1_resp.json()
@@ -86,7 +90,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         turn2_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನನ್ನ ಬಳಿ ನಾಲ್ಕು ಎಕರೆ ಜಮೀನಿದೆ, ಜೋಳ ಬೆಳೆಯುತ್ತಿದ್ದೇನೆ"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn2_resp.status_code == 200
         t2 = turn2_resp.json()
@@ -97,7 +101,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         turn3_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನಾಲ್ಕು ಎಕರೆ ಅಲ್ಲ, ಮೂರೂವರೆ ಎಕರೆ"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn3_resp.status_code == 200
         t3 = turn3_resp.json()
@@ -106,7 +110,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         # Verify profile has updated land area to 3.5 acres
         conv_status = await client.get(
             f"/api/v1/conversations/{conv_id}",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         prof_data = conv_status.json()["profile"]
         assert prof_data["land_area"]["canonical_acres"] == "3.5000"
@@ -115,7 +119,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         turn4_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ಇದು ನನ್ನ ಸ್ವಂತ ಜಮೀನು"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn4_resp.status_code == 200
         t4 = turn4_resp.json()
@@ -126,7 +130,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         turn5_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ಹೌದು, ಸರಿಯಾಗಿದೆ"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn5_resp.status_code == 200
         t5 = turn5_resp.json()
@@ -137,7 +141,7 @@ async def test_multi_turn_dialogue_with_corrections_and_confirmation(
         # Turn 6: Retrieve Bounded Conversation Turn History
         history_resp = await client.get(
             f"/api/v1/conversations/{conv_id}/turns",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert history_resp.status_code == 200
         history = history_resp.json()
@@ -154,6 +158,8 @@ async def test_voice_turn_submission(
 ):
     app = create_app()
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
+    app.dependency_overrides[get_db_session] = lambda: db_session
+    auth_headers = {"Authorization": f"Bearer {create_access_token(DEV_FARMER_ID)}"}
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -161,7 +167,7 @@ async def test_voice_turn_submission(
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         conv_id = create_resp.json()["conversation_id"]
 
@@ -174,7 +180,7 @@ async def test_voice_turn_submission(
             f"/api/v1/conversations/{conv_id}/turns/voice",
             files=files,
             data=data,
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert voice_resp.status_code == 200
         vdata = voice_resp.json()

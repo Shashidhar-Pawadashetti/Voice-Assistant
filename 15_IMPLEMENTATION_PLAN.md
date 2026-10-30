@@ -136,6 +136,7 @@ Acceptance:
 - farmer A cannot access farmer B data;
 - deletion workflow removes linked data and audio/cache;
 - input audio does not persist by default.
+- **Status:** COMPLETED. (See `docs/M5_SECURITY_AND_PRIVACY.md`, 201 tests passing, 90% statement coverage).
 
 ## M6 — Frontend integration and network resilience
 

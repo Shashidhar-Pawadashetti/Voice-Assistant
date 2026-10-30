@@ -69,6 +69,7 @@ class VoicePipelineService:
         audio_bytes: bytes,
         *,
         language: str = "kn",
+        owner_id: Optional[str] = None,
     ) -> VoiceTurnResponse:
         """Process an uploaded voice turn end-to-end.
 
@@ -161,6 +162,7 @@ class VoicePipelineService:
             audio_id = await self.audio_store.save(
                 tts_result.audio_bytes,
                 ttl_seconds=self.settings.AUDIO_RESPONSE_TTL_SECONDS,
+                owner_id=owner_id,
             )
             audio_url = f"/api/v1/voice/audio/{audio_id}"
             speech_available = True

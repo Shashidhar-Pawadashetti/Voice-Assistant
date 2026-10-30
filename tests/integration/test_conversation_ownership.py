@@ -8,8 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.conversations import get_conversation_service
 from app.core.asr.mock import MockSpeechRecognizer
 from app.core.llm.extractor import SchemeExtractor
+from app.core.security.jwt import create_access_token
 from app.core.tts.mock import MockSpeechSynthesizer
 from app.core.tts.storage import EphemeralAudioStore
+from app.database import get_db_session
 from app.main import create_app
 from app.models.farmer import Farmer
 from app.services.conversation_service import ConversationService
@@ -67,6 +69,10 @@ async def test_farmer_ownership_isolation(
 ):
     app = create_app()
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
+    app.dependency_overrides[get_db_session] = lambda: db_session
+
+    headers_a = {"Authorization": f"Bearer {create_access_token(FARMER_A_ID)}"}
+    headers_b = {"Authorization": f"Bearer {create_access_token(FARMER_B_ID)}"}
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -74,7 +80,7 @@ async def test_farmer_ownership_isolation(
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn"},
-            headers={"X-Farmer-ID": str(FARMER_A_ID)},
+            headers=headers_a,
         )
         assert create_resp.status_code == 201
         conv_id = create_resp.json()["conversation_id"]
@@ -82,7 +88,7 @@ async def test_farmer_ownership_isolation(
         # Farmer B attempts to retrieve Farmer A's conversation -> 403 FORBIDDEN
         get_b_resp = await client.get(
             f"/api/v1/conversations/{conv_id}",
-            headers={"X-Farmer-ID": str(FARMER_B_ID)},
+            headers=headers_b,
         )
         assert get_b_resp.status_code == 403
         assert get_b_resp.json()["error"]["code"] == "FORBIDDEN"
@@ -91,7 +97,7 @@ async def test_farmer_ownership_isolation(
         turn_b_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನಾನು ಇತರ ರೈತನ ಸಂಭಾಷಣೆಗೆ ಪ್ರವೇಶಿಸುತ್ತಿದ್ದೇನೆ"},
-            headers={"X-Farmer-ID": str(FARMER_B_ID)},
+            headers=headers_b,
         )
         assert turn_b_resp.status_code == 403
         assert turn_b_resp.json()["error"]["code"] == "FORBIDDEN"
@@ -99,7 +105,7 @@ async def test_farmer_ownership_isolation(
         # Farmer B attempts to complete Farmer A's conversation -> 403 FORBIDDEN
         comp_b_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/complete",
-            headers={"X-Farmer-ID": str(FARMER_B_ID)},
+            headers=headers_b,
         )
         assert comp_b_resp.status_code == 403
         assert comp_b_resp.json()["error"]["code"] == "FORBIDDEN"

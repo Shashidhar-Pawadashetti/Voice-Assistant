@@ -78,6 +78,19 @@ class Settings(BaseSettings):
     TTS_VOICE_GENDER: str = Field(default="female", description="Voice gender: female or male")
     TTS_MODEL_VERSION: str = Field(default="ai4bharat/indic_tts_kn_v1", description="Indic-TTS checkpoint version identifier")
 
+    # Security & Authentication (M5)
+    JWT_SECRET_KEY: str | None = Field(default=None, description="Secret key for signing JWTs (falls back to APP_SECRET_KEY)")
+    JWT_ALGORITHM: str = Field(default="HS256", description="Cryptographic algorithm for JWT access tokens")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=15, description="Access token lifespan in minutes (short-lived)")
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="Refresh token lifespan in days")
+    AUTH_RATE_LIMIT_LOGIN_MAX_ATTEMPTS: int = Field(default=5, description="Max login attempts allowed within window")
+    AUTH_RATE_LIMIT_LOGIN_WINDOW_SECONDS: int = Field(default=60, description="Sliding window duration for login rate limiting")
+    AUTH_RATE_LIMIT_REGISTER_MAX_ATTEMPTS: int = Field(default=5, description="Max registration attempts allowed within window")
+    AUTH_RATE_LIMIT_REGISTER_WINDOW_SECONDS: int = Field(default=300, description="Sliding window duration for registration rate limiting")
+    AUTH_LOCKOUT_ATTEMPTS: int = Field(default=5, description="Failed attempts before locking farmer account")
+    AUTH_LOCKOUT_DURATION_MINUTES: int = Field(default=15, description="Account lockout duration in minutes")
+    ALLOWED_HOSTS: str = Field(default="*", description="Allowed HTTP Host header values (comma-separated)")
+
     @field_validator("CORS_ORIGINS")
     @classmethod
     def validate_cors(cls, v: str) -> str:
@@ -88,13 +101,24 @@ class Settings(BaseSettings):
         """Return CORS origins as a list."""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
+    @property
+    def allowed_hosts_list(self) -> List[str]:
+        """Return allowed hosts as a list."""
+        return [host.strip() for host in self.ALLOWED_HOSTS.split(",") if host.strip()]
+
     @field_validator("APP_SECRET_KEY")
     @classmethod
     def validate_secret_key(cls, v: str, info) -> str:
-        # In production, enforce non-default secret key
-        env = os.environ.get("APP_ENV", "local")
-        if env == "production" and ("insecure" in v or len(v) < 32):
-            raise ValueError("APP_SECRET_KEY must be at least 32 characters and not use defaults in production")
+        # Enforce non-default secret key in staging and production
+        # Properly inspect resolved APP_ENV from parsed settings or environment variable
+        env = "local"
+        if info and hasattr(info, "data") and "APP_ENV" in info.data:
+            env = info.data["APP_ENV"]
+        else:
+            env = os.environ.get("APP_ENV", "local")
+
+        if env in ("production", "staging") and ("insecure" in v or "dev" in v or len(v) < 32):
+            raise ValueError(f"APP_SECRET_KEY must be at least 32 characters and not use defaults in {env}")
         return v
 
 

@@ -123,6 +123,15 @@ Farmer text and transcripts are untrusted data. They must not alter system rules
 - record a minimal deletion status event without retaining deleted content;
 - define backup expiry and restore-time deletion replay process.
 
-## 12. Legal implementation note
+## 12. Implementation status (Milestone M5)
+
+All specifications in this document are fully implemented and verified in Milestone M5:
+- **Authentication (`app/api/v1/auth.py`, `app/services/auth_service.py`)**: Argon2id hashing, HMAC-SHA256 phone blind indexing, AES-256-GCM encrypted storage, short-lived signed JWT access tokens (15m), 256-bit refresh tokens stored as SHA-256 hashes, single-use rotation, token family reuse detection and family revocation, generic 401 errors, constant-time dummy verification, sliding-window rate limiting, and adaptive account lockout.
+- **Authorization & BOLA Defense (`app/core/security/auth.py`)**: Reusable `get_current_farmer` and `get_current_farmer_id` dependencies. All farmer-owned routes derive identity strictly from validated tokens. `x-farmer-id` header spoofing has zero effect.
+- **Audio Protection (`app/core/tts/storage.py`)**: Strict owner binding, filesystem metadata sidecars (`{audio_id}.meta.json`) guaranteeing multi-worker safety, 10-minute TTL cleanup, and alphanumeric ID path traversal defense.
+- **DPDP Act 2023 Rights (`app/api/v1/privacy.py`, `app/services/privacy_service.py`)**: Complete machine-readable data export (`GET /api/v1/privacy/export`) and verified erasure workflow requiring password confirmation (`POST /api/v1/privacy/delete`). Anonymizes immutable recommendation runs while preserving auditability.
+- **Security Hardening (`app/main.py`)**: OWASP security headers (`nosniff`, `DENY`, `XSS`, `CSP`, `Referrer-Policy`) and Content-Length limits (15 MB audio / 2 MB JSON).
+
+## 13. Legal implementation note
 
 The product team must obtain qualified legal advice for public deployment, including DPDP obligations, phased commencement dates, notices/consent language, grievance contact requirements, retention and children's data if minors may use the service. This technical document is not legal advice.

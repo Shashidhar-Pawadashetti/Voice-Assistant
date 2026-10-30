@@ -67,11 +67,32 @@ def create_app() -> FastAPI:
         expose_headers=["X-Request-ID"],
     )
 
-    # Request ID and Safe Structured Access Logging Middleware
+    # Request Size and Security Headers Middleware
     @app.middleware("http")
     async def request_correlation_and_logging_middleware(request: Request, call_next) -> Response:
         request_id = request.headers.get("X-Request-ID") or f"req_{uuid.uuid4().hex[:12]}"
         request.state.request_id = request_id
+
+        # Enforce Request Size Limits (DoS prevention)
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                cl_int = int(content_length)
+                max_bytes = settings.AUDIO_MAX_BYTES if "voice" in request.url.path else 2 * 1024 * 1024
+                if cl_int > max_bytes:
+                    return JSONResponse(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        content={
+                            "error": {
+                                "code": "PAYLOAD_TOO_LARGE",
+                                "message": f"Request body exceeds maximum allowed size of {max_bytes} bytes.",
+                                "retryable": False,
+                                "request_id": request_id,
+                            }
+                        },
+                    )
+            except ValueError:
+                pass
 
         start_time = time.monotonic()
         response: Response | None = None
@@ -83,9 +104,14 @@ def create_app() -> FastAPI:
             duration_ms = round((time.monotonic() - start_time) * 1000.0, 2)
             status_code = response.status_code if response else 500
 
-            # Attach correlation ID header to response
+            # Attach correlation ID and OWASP recommended security headers
             if response:
                 response.headers["X-Request-ID"] = request_id
+                response.headers["X-Content-Type-Options"] = "nosniff"
+                response.headers["X-Frame-Options"] = "DENY"
+                response.headers["X-XSS-Protection"] = "1; mode=block"
+                response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+                response.headers["Content-Security-Policy"] = "default-src 'self'"
 
             # Safe access log: never logs user input, transcripts, audio, or tokens
             logger.info(

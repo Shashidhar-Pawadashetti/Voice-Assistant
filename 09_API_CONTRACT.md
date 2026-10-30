@@ -26,34 +26,79 @@ Do not expose stack traces, model prompts, file-system paths or internal service
 
 ## 2. Authentication endpoints
 
-### POST `/auth/register`
+Implemented in Milestone M5 (`app/api/v1/auth.py`):
 
+### POST `/api/v1/auth/register`
 Request:
-
 ```json
 {
-  "phone_number": "+91XXXXXXXXXX",
-  "password": "user-supplied-strong-password",
+  "phone_number": "9876543210",
+  "password": "StrongPassword!2026",
   "preferred_language": "kn",
-  "consent_version": "privacy-notice-1.0"
+  "consent_given": true
+}
+```
+Response (`201 Created`):
+```json
+{
+  "farmer": {
+    "id": "uuid",
+    "phone_number_masked": "+91 ******3210",
+    "preferred_language": "kn",
+    "account_status": "ACTIVE",
+    "created_at": "2026-10-31T00:00:00Z",
+    "last_login_at": "2026-10-31T00:00:00Z"
+  },
+  "tokens": {
+    "access_token": "jwt_token_string",
+    "refresh_token": "cryptographic_random_string",
+    "token_type": "bearer",
+    "expires_in": 900
+  }
 }
 ```
 
-The example phone is a placeholder. Validate and normalize phone format; do not log password/phone. Hash password using Argon2id. Do not imply phone ownership is verified unless an OTP/provider flow exists.
-
-### POST `/auth/login`
-
+### POST `/api/v1/auth/login`
 Request:
-
 ```json
-{"phone_number": "+91XXXXXXXXXX", "password": "..."}
+{
+  "phone_number": "9876543210",
+  "password": "StrongPassword!2026"
+}
 ```
+Response (`200 OK`):
+```json
+{
+  "access_token": "jwt_token_string",
+  "refresh_token": "cryptographic_random_string",
+  "token_type": "bearer",
+  "expires_in": 900
+}
+```
+*Security Invariants:* Generic 401 error `"Invalid phone number or password"` preventing user enumeration. Constant-time dummy verify. Account lockout after 5 failed attempts for 15 minutes. Sliding-window IP rate limiting.
 
-Return short-lived access token and secure refresh mechanism. Preferred browser pattern: access token kept in memory; refresh token in `HttpOnly`, `Secure`, `SameSite` cookie. Configure CORS/CSRF protection for actual frontend origin.
+### POST `/api/v1/auth/refresh`
+Request:
+```json
+{
+  "refresh_token": "cryptographic_random_string"
+}
+```
+Rotates refresh token and issues a new access token. If an already-rotated or revoked token is reused, the entire token family is revoked immediately.
 
-### POST `/auth/refresh`, POST `/auth/logout`, GET `/me`
+### POST `/api/v1/auth/logout`
+Header: `Authorization: Bearer <access_token>`  
+Request body (optional): `{"refresh_token": "..."}`  
+Revokes active refresh token(s) and logs audit event.
 
-Refresh token rotation, revoke on logout, return minimal farmer profile. Every response is scoped to the authenticated farmer.
+### GET `/api/v1/auth/me`
+Header: `Authorization: Bearer <access_token>`  
+Returns authenticated farmer profile and masked phone number.
+
+### POST `/api/v1/auth/change-password`
+Header: `Authorization: Bearer <access_token>`  
+Request: `{"old_password": "...", "new_password": "..."}`  
+Changes password using Argon2id, revokes all active refresh tokens, and requires re-login.
 
 ## 3. Conversation endpoints
 
@@ -197,11 +242,37 @@ Return recommendation runs and traces belonging to that conversation. Example it
 
 If `verification_status` is `INCOMPLETE`, the outcome must be `RULES_NOT_VERIFIED`; condition-level unknowns may be included as diagnostic metadata but must not be presented as a verified eligibility evaluation.
 
-## 7. Farmer data deletion
+## 7. Farmer privacy and data rights (DPDP Act 2023)
 
-### DELETE `/me/data`
+Implemented in Milestone M5 (`app/api/v1/privacy.py`):
 
-Require recent re-authentication or another appropriate confirmation. Return a deletion request ID and status if deletion is asynchronous. The service must delete/anonymize data across all linked tables, cached items, temporary files and backups according to the approved retention/deletion policy. Do not report “deleted” until the workflow completes.
+### GET `/api/v1/privacy/export`
+Header: `Authorization: Bearer <access_token>`  
+Returns a structured, machine-readable export of all records belonging to the authenticated farmer:
+- Farmer account metadata (language, registration date, last login)
+- Profile attributes and agricultural facts
+- Notice and consent history
+- Conversation sessions, turns, and slot values
+- Historical scheme recommendation runs and explanation traces
+*Invariant:* Plaintext passwords, Argon2id hashes, and symmetric encryption keys are never exported.
+
+### POST `/api/v1/privacy/delete`
+Header: `Authorization: Bearer <access_token>`  
+Request:
+```json
+{
+  "password": "FarmerPassword!2026",
+  "reason": "Optional reason for account deletion"
+}
+```
+Requires password confirmation. Atomically executes verified erasure:
+- Purges all farmer response audio files from the ephemeral audio store
+- Deletes conversation sessions, turns, and slots
+- Deletes farmer profile records and refresh tokens
+- Withdraws all active consents
+- Anonymizes recommendation audit records by redacting profile snapshots
+- Deactivates farmer account (`account_status = 'DELETED'`), scrambles phone blind index, and overwrites credentials
+- Returns a completion receipt with `records_erased` summary and `deletion_request_id`
 
 ## 8. Scheme catalog & recommendation endpoints
 

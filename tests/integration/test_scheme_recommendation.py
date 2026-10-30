@@ -12,6 +12,7 @@ from app.api.v1.conversations import get_conversation_service
 from app.core.asr.mock import MockSpeechRecognizer
 from app.core.llm.extractor import SchemeExtractor
 from app.core.scheme.enums import RecommendationStatus, SchemeClassification
+from app.core.security.jwt import create_access_token
 from app.core.tts.mock import MockSpeechSynthesizer
 from app.core.tts.storage import EphemeralAudioStore
 from app.database import get_db_session
@@ -27,7 +28,7 @@ OTHER_FARMER_ID = uuid.UUID("22222222-2222-2222-2222-222222222222")
 
 @pytest.fixture
 async def seeded_farmer(db_session: AsyncSession) -> Farmer:
-    """Create and seed default test farmer."""
+    """Create and seed default test farmers."""
     farmer = Farmer(
         id=DEV_FARMER_ID,
         phone_number_encrypted="enc_phone_dev",
@@ -36,7 +37,15 @@ async def seeded_farmer(db_session: AsyncSession) -> Farmer:
         preferred_language="kn",
         account_status="ACTIVE",
     )
-    db_session.add(farmer)
+    other = Farmer(
+        id=OTHER_FARMER_ID,
+        phone_number_encrypted="enc_phone_other",
+        phone_number_hash="hash_other_farmer",
+        password_hash="fakehash",
+        preferred_language="kn",
+        account_status="ACTIVE",
+    )
+    db_session.add_all([farmer, other])
     await db_session.flush()
     return farmer
 
@@ -124,12 +133,14 @@ async def test_evaluate_conversation_recommendations_flow(
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
     app.dependency_overrides[get_db_session] = lambda: db_session
 
+    auth_headers = {"Authorization": f"Bearer {create_access_token(DEV_FARMER_ID)}" }
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # 1. Create conversation
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn", "initial_intent": "INCOME_SUPPORT"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert create_resp.status_code == 201
         conv_id = create_resp.json()["conversation_id"]
@@ -138,14 +149,14 @@ async def test_evaluate_conversation_recommendations_flow(
         turn1_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/turns/text",
             json={"text": "ನನ್ನ ಹೆಸರು ರಮೇಶ್, ಧಾರವಾಡ ಜಿಲ್ಲೆ, 3 ಎಕರೆ ಸ್ವಂತ ಜಮೀನಿದೆ. ಪಿಎಂ ಕಿಸಾನ್ ನೆರವು ಬೇಕು."},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert turn1_resp.status_code == 200
 
         # 3. Trigger Scheme Recommendation Evaluation Endpoint
         rec_resp = await client.post(
             f"/api/v1/conversations/{conv_id}/recommendations",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert rec_resp.status_code == 200
         rec_data = rec_resp.json()
@@ -166,7 +177,7 @@ async def test_evaluate_conversation_recommendations_flow(
         # 4. Verify Recommendation Trace in History
         hist_resp = await client.get(
             f"/api/v1/conversations/{conv_id}/recommendations",
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=auth_headers,
         )
         assert hist_resp.status_code == 200
         hist_data = hist_resp.json()
@@ -189,25 +200,28 @@ async def test_recommendation_ownership_bola_protection(
     app.dependency_overrides[get_conversation_service] = lambda: mock_conversation_service
     app.dependency_overrides[get_db_session] = lambda: db_session
 
+    headers_dev = {"Authorization": f"Bearer {create_access_token(DEV_FARMER_ID)}" }
+    headers_other = {"Authorization": f"Bearer {create_access_token(OTHER_FARMER_ID)}" }
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create conversation for DEV_FARMER_ID
         create_resp = await client.post(
             "/api/v1/conversations",
             json={"language": "kn", "initial_intent": "INCOME_SUPPORT"},
-            headers={"X-Farmer-ID": str(DEV_FARMER_ID)},
+            headers=headers_dev,
         )
         conv_id = create_resp.json()["conversation_id"]
 
         # Attempt to evaluate recommendations using OTHER_FARMER_ID
         unauth_eval = await client.post(
             f"/api/v1/conversations/{conv_id}/recommendations",
-            headers={"X-Farmer-ID": str(OTHER_FARMER_ID)},
+            headers=headers_other,
         )
         assert unauth_eval.status_code in (403, 404)
 
         # Attempt to read recommendation history using OTHER_FARMER_ID
         unauth_hist = await client.get(
             f"/api/v1/conversations/{conv_id}/recommendations",
-            headers={"X-Farmer-ID": str(OTHER_FARMER_ID)},
+            headers=headers_other,
         )
         assert unauth_hist.status_code in (403, 404)
