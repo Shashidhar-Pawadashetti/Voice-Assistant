@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 from app.api.v1.health import router as health_router
 from app.api.v1.extraction import router as extraction_router
+from app.api.v1.voice import router as voice_router
 
 
 api_v1_router = APIRouter()
@@ -10,3 +11,4 @@ api_v1_router = APIRouter()
 # Mount health endpoints under /api/v1 as well as root
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(extraction_router)
+api_v1_router.include_router(voice_router)

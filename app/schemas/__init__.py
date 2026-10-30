@@ -9,6 +9,8 @@ from app.schemas.extraction import (
     ExtractionRequest,
 )
 
+from app.schemas.voice import VoiceTurnResponse
+
 __all__ = [
     "LivenessResponse",
     "ReadinessResponse",
@@ -19,4 +21,5 @@ __all__ = [
     "ExtractedEntity",
     "ExtractionResult",
     "ExtractionRequest",
+    "VoiceTurnResponse",
 ]

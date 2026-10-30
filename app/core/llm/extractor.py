@@ -24,8 +24,11 @@ CRITICAL_SLOTS = {"district", "crop", "land_area", "season", "land_ownership"}
 class IntentSlotExtractor:
     """Extracts typed agricultural facts and intent using schema-constrained LLM generation."""
 
-    def __init__(self, llm_adapter: LanguageModel):
-        self.llm = llm_adapter
+    def __init__(self, llm_adapter: Optional[LanguageModel] = None, llm: Optional[LanguageModel] = None):
+        adapter = llm_adapter or llm
+        if adapter is None:
+            raise ValueError("An LLM adapter instance must be provided")
+        self.llm = adapter
         # Use inlined JSON schema optimized for Ollama's grammar engine
         self.schema: Dict[str, Any] = get_ollama_extraction_schema()
 
@@ -115,3 +118,15 @@ class IntentSlotExtractor:
         for s in slots:
             lines.append(f"- {s.slot}: {s.canonical_value} (status: {s.assertion})")
         return "\n".join(lines)
+
+
+# Alias and helper factory for dependency injection
+SchemeExtractor = IntentSlotExtractor
+
+
+def get_scheme_extractor() -> IntentSlotExtractor:
+    """Return default IntentSlotExtractor configured with Ollama adapter."""
+    from app.core.llm.ollama import OllamaAdapter
+
+    return IntentSlotExtractor(OllamaAdapter())
+

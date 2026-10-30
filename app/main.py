@@ -1,8 +1,13 @@
 """FastAPI application entry point with lifespan, middleware, and standard error handling."""
 
+import asyncio
 import logging
+import sys
 import time
 import uuid
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from fastapi import FastAPI, HTTPException, Request, Response, status

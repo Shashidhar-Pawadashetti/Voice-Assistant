@@ -24,6 +24,10 @@ class IntentType(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
+# Alias Intent for convenience
+Intent = IntentType
+
+
 class ExtractedEntity(BaseModel):
     """Individual agricultural entity/slot extracted from farmer utterance."""
 

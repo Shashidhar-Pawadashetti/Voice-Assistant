@@ -62,7 +62,21 @@ class Settings(BaseSettings):
     AUDIO_TEMP_DIR: str = Field(default="./.runtime/audio", description="Directory for temporary audio")
     AUDIO_MAX_BYTES: int = Field(default=15728640, description="Maximum audio upload bytes (15 MB)")
     AUDIO_MAX_SECONDS: int = Field(default=60, description="Maximum audio duration in seconds")
-    AUDIO_RESPONSE_TTL_SECONDS: int = Field(default=600, description="TTL for ephemeral response audio")
+    AUDIO_RESPONSE_TTL_SECONDS: int = Field(default=600, description="TTL for ephemeral response audio (10 min)")
+    FFMPEG_BINARY_PATH: str | None = Field(default=None, description="Path to ffmpeg executable if not on system PATH")
+
+    # ASR (M1.1)
+    ASR_PROVIDER: str = Field(default="indic_conformer", description="ASR provider: indic_conformer, mock")
+    ASR_SERVICE_URL: str = Field(default="http://127.0.0.1:8001", description="IndicConformer service endpoint")
+    ASR_TIMEOUT_SECONDS: float = Field(default=15.0, description="ASR inference timeout in seconds")
+    ASR_MODEL_VERSION: str = Field(default="ai4bharat/indicconformer_asr_kn_v1", description="IndicConformer model version identifier")
+
+    # TTS (M1.2)
+    TTS_PROVIDER: str = Field(default="indic_tts", description="TTS provider: indic_tts, mock")
+    TTS_SERVICE_URL: str = Field(default="http://127.0.0.1:8002", description="Indic-TTS service endpoint")
+    TTS_TIMEOUT_SECONDS: float = Field(default=15.0, description="TTS inference timeout in seconds")
+    TTS_VOICE_GENDER: str = Field(default="female", description="Voice gender: female or male")
+    TTS_MODEL_VERSION: str = Field(default="ai4bharat/indic_tts_kn_v1", description="Indic-TTS checkpoint version identifier")
 
     @field_validator("CORS_ORIGINS")
     @classmethod

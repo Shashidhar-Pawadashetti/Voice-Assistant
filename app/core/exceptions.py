@@ -144,3 +144,121 @@ class IdempotencyConflictError(KrishiMitraError):
             retryable=False,
             details=details,
         )
+
+
+class AudioValidationError(KrishiMitraError):
+    """Raised when uploaded audio violates format, size, or duration constraints."""
+
+    def __init__(self, message: str = "Audio validation failed", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="AUDIO_VALIDATION_FAILED",
+            status_code=400,
+            retryable=False,
+            details=details,
+        )
+
+
+class AudioNormalizationError(KrishiMitraError):
+    """Raised when audio conversion or normalization fails."""
+
+    def __init__(self, message: str = "Audio normalization failed", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="AUDIO_NORMALIZATION_FAILED",
+            status_code=422,
+            retryable=False,
+            details=details,
+        )
+
+
+class ASRModelError(KrishiMitraError):
+    """Base exception for ASR transcription errors."""
+
+    def __init__(
+        self,
+        message: str,
+        code: str = "ASR_ERROR",
+        status_code: int = 502,
+        retryable: bool = True,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            message=message,
+            code=code,
+            status_code=status_code,
+            retryable=retryable,
+            details=details,
+        )
+
+
+class ASRTimeoutError(ASRModelError):
+    """Raised when ASR transcription times out."""
+
+    def __init__(self, message: str = "ASR transcription timed out", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="ASR_TIMEOUT",
+            status_code=504,
+            retryable=True,
+            details=details,
+        )
+
+
+class ASRUnavailableError(ASRModelError):
+    """Raised when ASR model or service is unreachable."""
+
+    def __init__(self, message: str = "ASR service unavailable", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="ASR_UNAVAILABLE",
+            status_code=503,
+            retryable=True,
+            details=details,
+        )
+
+
+class TTSModelError(KrishiMitraError):
+    """Base exception for TTS speech synthesis errors."""
+
+    def __init__(
+        self,
+        message: str,
+        code: str = "TTS_ERROR",
+        status_code: int = 502,
+        retryable: bool = True,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(
+            message=message,
+            code=code,
+            status_code=status_code,
+            retryable=retryable,
+            details=details,
+        )
+
+
+class TTSTimeoutError(TTSModelError):
+    """Raised when TTS synthesis times out."""
+
+    def __init__(self, message: str = "TTS synthesis timed out", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="TTS_TIMEOUT",
+            status_code=504,
+            retryable=True,
+            details=details,
+        )
+
+
+class TTSUnavailableError(TTSModelError):
+    """Raised when TTS service or checkpoint is unreachable."""
+
+    def __init__(self, message: str = "TTS service unavailable", details: Optional[Dict[str, Any]] = None):
+        super().__init__(
+            message=message,
+            code="TTS_UNAVAILABLE",
+            status_code=503,
+            retryable=True,
+            details=details,
+        )
