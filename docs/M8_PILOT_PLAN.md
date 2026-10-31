@@ -1,10 +1,17 @@
 # Krishi Mitra — Milestone M8: Controlled Farmer Pilot Plan & Protocol
 
 **Document Version:** 1.0.0  
-**Status:** Approved for Controlled Field Execution  
+**Evidence Classification:** `DOCUMENTED_PROCEDURE` (Specification of operating protocol; not proof of execution)  
+**Status:** Approved Standard Operating Procedure (SOP)  
 **Governing Milestone:** M8 — Controlled Farmer Pilot & Field Validation  
 **Baseline System:** M7 Hardened Production Baseline (`f7e5575573f700f262c0a6ae4e4849d0f11163e2`)  
 **Applicable Regulations:** Digital Personal Data Protection Act (DPDP Act 2023), IT Act 2000, Aadhaar/Land Record Privacy Standards  
+
+---
+
+> [!NOTE]
+> **EVIDENCE INTEGRITY NOTICE:**  
+> This document specifies the planned operating procedures, recruitment criteria, and DPDP consent protocols for farmer field evaluations. Under M8.6 evidence standards, protocols and operating plans are classified as `DOCUMENTED_PROCEDURE` and must not be cited as empirical field execution evidence. Field execution evidence is recorded separately upon trial completion.  
 
 ---
 

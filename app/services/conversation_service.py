@@ -52,6 +52,9 @@ from app.schemas.extraction import Intent
 
 logger = logging.getLogger("krishi.service.conversation")
 
+# Concurrency and network-drop idempotency store: keyed by "{conversation_id}:{client_turn_id}"
+_TURN_IDEMPOTENCY_CACHE: Dict[str, TurnResponse] = {}
+
 
 class ConversationService:
     """Manages multi-turn conversation sessions, persistent memory, and deterministic dialogue flow."""
@@ -358,6 +361,13 @@ class ConversationService:
         if conv.status == "COMPLETED":
             raise ConversationExpiredError("Cannot submit turns to a completed conversation")
 
+        # Network disconnect and retry idempotency check
+        if client_turn_id:
+            cache_key = f"{conversation_id}:{client_turn_id}"
+            if cache_key in _TURN_IDEMPOTENCY_CACHE:
+                logger.info("Returning cached idempotent response for %s", cache_key)
+                return _TURN_IDEMPOTENCY_CACHE[cache_key]
+
         # Optimistic concurrency check
         if expected_version is not None and conv.version != expected_version:
             raise OptimisticLockError(
@@ -584,7 +594,7 @@ class ConversationService:
 
         await self.db.commit()
 
-        return TurnResponse(
+        turn_resp = TurnResponse(
             turn_id=str(turn.id),
             turn_number=turn_number,
             conversation_id=str(conversation_id),
@@ -600,6 +610,12 @@ class ConversationService:
             extracted_intent=current_intent.value,
             version=current_version + 1,
         )
+
+        if client_turn_id:
+            cache_key = f"{conversation_id}:{client_turn_id}"
+            _TURN_IDEMPOTENCY_CACHE[cache_key] = turn_resp
+
+        return turn_resp
 
     # -------------------------------------------------------------------------
     # Internal Helpers

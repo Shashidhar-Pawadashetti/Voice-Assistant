@@ -17,6 +17,7 @@ from typing import List, Optional
 from app.core.normalization.corrections import SlotAuditRecord, detect_correction
 from app.core.normalization.land_area import normalize_land_area
 from app.core.normalization.location import (
+    get_district_by_id,
     normalize_district,
     normalize_taluk,
     validate_taluk_in_district,
@@ -59,6 +60,12 @@ class AgriculturalProfileAssembler:
 
         # Step 2: Extract & normalize location facts
         new_district = normalize_district(clean_utterance)
+        new_taluk = normalize_taluk(clean_utterance)
+
+        # Derive district from taluk if district is not explicitly found and not yet set in profile
+        if profile.district is None and new_district is None and new_taluk is not None:
+            new_district = get_district_by_id(new_taluk.parent_district_id)
+
         if new_district is not None:
             # Check for conflict if different district was previously set
             if profile.district and profile.district.district_id != new_district.district_id:
@@ -73,7 +80,6 @@ class AgriculturalProfileAssembler:
                 )
             profile.district = new_district
 
-        new_taluk = normalize_taluk(clean_utterance)
         if new_taluk is not None:
             profile.taluk = new_taluk
 

@@ -1,0 +1,224 @@
+{
+  "metadata": {
+    "evidence_classification": "AUTOMATED_TEST",
+    "test_concept": "automated_synthetic_cohort_simulation",
+    "software_version": "1.0.0",
+    "commit_sha": "2213d11eceecaaa7ec4ed14e24766de8833c36a0",
+    "environment": "automated_simulation_test",
+    "execution_timestamp": "2026-10-31 03:45:33 UTC",
+    "disclaimer": "This document contains automated simulation metrics only. No actual farmers were evaluated. Latency reflects in-process ASGI execution.",
+    "components": {
+      "asr": "MockSpeechRecognizer (mock)",
+      "tts": "MockSpeechSynthesizer (mock)",
+      "nlu": "SyntheticFixtureDeterministicNLU (mock heuristic)",
+      "network": "simulated_in_process_asgi",
+      "database": "sqlite_in_memory"
+    },
+    "artifact_checksums": {
+      "metrics_json_sha256": "64a732ce23dcbb26d55d0467971555516593f585c79a1aea746c29586ff08d40",
+      "report_markdown_sha256": "e6d02622729d6f0b8d2cfb84ed47c4199e612cc4a1bb86119db9735956268b0c"
+    }
+  },
+  "summary": {
+    "total_synthetic_fixtures": 20,
+    "assertions_required": 294,
+    "assertions_exercised": 294,
+    "assertions_passed": 294,
+    "assertions_failed": 0,
+    "assertions_skipped": 0,
+    "synthetic_fixture_pass_rate_pct": 100.0,
+    "harness_duration_seconds": 17.7,
+    "verdict": "PASSED"
+  },
+  "in_process_asgi_latency_ms": {
+    "p50": 97.72,
+    "p95": 358.31,
+    "p99": 467.12,
+    "mean": 111.79,
+    "max": 477.8,
+    "notes": "In-process ASGI memory loop latency. Does NOT represent rural 3G/4G/GSM network latency."
+  },
+  "fixture_profiles": [
+    {
+      "fixture_id": "SF01",
+      "description": "North Karnataka Green Gram Owner (Correction Scenario)",
+      "region": "North Karnataka",
+      "district": "DHARWAD",
+      "crop": "GREEN_GRAM",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF02",
+      "description": "North Karnataka Sugarcane Owner (Network Drop & Idempotency Scenario)",
+      "region": "North Karnataka",
+      "district": "BELAGAVI",
+      "crop": "SUGARCANE",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF03",
+      "description": "North Karnataka Sorghum Tenant (Tenant Exclusion Scenario)",
+      "region": "North Karnataka",
+      "district": "BAGALKOTE",
+      "crop": "SORGHUM",
+      "ownership": "TENANT",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF04",
+      "description": "North Karnataka Pigeon Pea Owner (Dryland Priority Scenario)",
+      "region": "North Karnataka",
+      "district": "VIJAYAPURA",
+      "crop": "PIGEON_PEA",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF05",
+      "description": "North Karnataka Groundnut Owner",
+      "region": "North Karnataka",
+      "district": "DHARWAD",
+      "crop": "GROUNDNUT",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF06",
+      "description": "North Karnataka Maize Owner (Correction Scenario)",
+      "region": "North Karnataka",
+      "district": "BELAGAVI",
+      "crop": "MAIZE",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF07",
+      "description": "Kalyana Karnataka Pigeon Pea Owner (PMFBY Insurance & Network Drop Scenario)",
+      "region": "Kalyana Karnataka",
+      "district": "KALABURAGI",
+      "crop": "PIGEON_PEA",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF08",
+      "description": "Kalyana Karnataka Cotton Tenant (Tenant Credit Routing Scenario)",
+      "region": "Kalyana Karnataka",
+      "district": "KALABURAGI",
+      "crop": "COTTON",
+      "ownership": "TENANT",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF09",
+      "description": "Kalyana Karnataka Paddy Owner (Canal Irrigation Scenario)",
+      "region": "Kalyana Karnataka",
+      "district": "RAICHUR",
+      "crop": "PADDY",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF10",
+      "description": "Kalyana Karnataka Green Gram Owner",
+      "region": "Kalyana Karnataka",
+      "district": "BIDAR",
+      "crop": "GREEN_GRAM",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF11",
+      "description": "Kalyana Karnataka Finger Millet Owner (Raitha Siri & Correction Scenario)",
+      "region": "Kalyana Karnataka",
+      "district": "KOPPAL",
+      "crop": "FINGER_MILLET",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF12",
+      "description": "South Karnataka Sugarcane Owner (Synthetic Demo & Network Drop Scenario)",
+      "region": "South Karnataka",
+      "district": "MANDYA",
+      "crop": "SUGARCANE",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF13",
+      "description": "South Karnataka Paddy Owner (Marginal Holding Scenario)",
+      "region": "South Karnataka",
+      "district": "MYSURU",
+      "crop": "PADDY",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF14",
+      "description": "South Karnataka Finger Millet Owner (Raitha Siri Scenario)",
+      "region": "South Karnataka",
+      "district": "HASSAN",
+      "crop": "FINGER_MILLET",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF15",
+      "description": "South Karnataka Finger Millet Owner",
+      "region": "South Karnataka",
+      "district": "MANDYA",
+      "crop": "FINGER_MILLET",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF16",
+      "description": "South Karnataka Ragi Tenant (Tenant Exclusion & Correction Scenario)",
+      "region": "South Karnataka",
+      "district": "CHAMARAJANAGARA",
+      "crop": "FINGER_MILLET",
+      "ownership": "TENANT",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF17",
+      "description": "Coastal Karnataka Arecanut Owner (Synthetic Demo & Network Drop Scenario)",
+      "region": "Coastal Karnataka",
+      "district": "UTTARA_KANNADA",
+      "crop": "ARECANUT",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF18",
+      "description": "Coastal Karnataka Monsoon Paddy Owner",
+      "region": "Coastal Karnataka",
+      "district": "UDUPI",
+      "crop": "PADDY",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF19",
+      "description": "Coastal Karnataka Arecanut & Coconut Owner",
+      "region": "Coastal Karnataka",
+      "district": "DAKSHINA_KANNADA",
+      "crop": "ARECANUT",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    },
+    {
+      "fixture_id": "SF20",
+      "description": "Coastal Karnataka Paddy Owner (Network Drop & DPDP Account Erasure Scenario)",
+      "region": "Coastal Karnataka",
+      "district": "UDUPI",
+      "crop": "PADDY",
+      "ownership": "OWNER",
+      "status": "COMPLETED"
+    }
+  ],
+  "failures": []
+}

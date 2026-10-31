@@ -1,98 +1,123 @@
-# Krishi Mitra — Milestone M8: Release Decision & Pilot Go/No-Go Verdict
+# Krishi Mitra — Milestone M8: Release Gate Decision & Pilot Governance Verdict
 
-**Document Version:** 1.0.0  
+**Document Version:** 2.0.0 (Corrected Post-Audit Edition)  
+**Evidence Classification:** `DOCUMENTED_PROCEDURE` & `DECISION_RECORD`  
+**Governing Milestone:** M8.6 — Evidence Integrity & Pilot Validation Correction  
+**Baseline Commit:** M7 `f7e5575573f700f262c0a6ae4e4849d0f11163e2` | Active Branch: `fix/m8-evidence-integrity`  
 **Decision Authority:** Lead Systems Architect, Chief Agricultural Domain Officer, Platform Security Lead  
-**Governing Milestone:** M8 — Controlled Farmer Pilot & Field Validation  
-**Release Target:** Controlled Phase 2 Farmer Pilot (N = 100)  
 **Evaluation Date:** 2026-10-31  
 
 ---
 
-## 1. Formal Release Decision & Verdict
-
-### **VERDICT: QUALIFIED GO (PROCEED TO CONTROLLED PHASE 2 PILOT)**
-
-The Krishi Mitra platform has successfully satisfied all core engineering, security, domain governance, and usability requirements mandated by Milestone M8. 
-
-The system has passed **100% of staging release pre-flight checks** (M8.1) and **100% of simulated and assisted field usability evaluations across 20 farmers in 4 agro-climatic zones** (M8.2–M8.5), recording an overall task success rate of **100.0% (220/220 tasks)** and a median p50 latency of **88.6 ms**.
-
-The release is **QUALIFIED** with explicit operating guardrails:
-1. Rollout is restricted to a **controlled, assisted cohort of up to 100 farmers** across designated Karnataka taluks.
-2. Field extension facilitators must remain present during initial onboarding to assist with visual microphone feedback and read the DPDP consent notice.
-3. Unconditional scheme approvals remain strictly prohibited; all genuine scheme outputs must retain prominent official verification caveats.
-4. PMFBY crop insurance remains blocked or flagged as verification-required until live integration with Karnataka's Samrakshane API is deployed.
+> [!CAUTION]
+> **GOVERNANCE DIRECTIVE — 100-FARMER ROLLOUT UNAUTHORIZED:**  
+> **The platform is NOT authorized for a 100-farmer field rollout based solely on automated test simulations.**  
+> Prior documentation claiming successful field usability across 20 live farmers was an unverified conflation of automated synthetic tests with real-world human observations. Automated regression harnesses prove algorithmic correctness and infrastructure stability, but **cannot** establish rural acoustic intelligibility, speech interface usability, or human trust.  
+> 
+> Progression is strictly partitioned into **Three Sequential Release Gates**. Only **Gate 1** is certified passed today.
 
 ---
 
-## 2. Itemized Capability Verification (What Passed)
+## 1. Staged Release Gate Architecture
 
-The following components and subsystems have been rigorously tested and verified:
+```mermaid
+flowchart LR
+    G1["Gate 1: Automated Simulation & Staging Checks\n(294/294 Assertions Passed)\n[STATUS: CERTIFIED PASSED]"]
+    G2["Gate 2: Supervised Real-World Micro-Pilot\n(N = 10-15 Consented Farmers)\n[STATUS: AUTHORIZED TO COMMENCE]"]
+    G3["Gate 3: Controlled Cohort Expansion\n(N = 50-100 Farmers)\n[STATUS: STRICTLY BLOCKED]"]
 
-| Component / Subsystem | Verification Criteria | Status | Evidence Reference |
-| :--- | :--- | :---: | :--- |
-| **Authentication & Authorization** | Argon2id password hashing, AES-256-GCM phone encryption, HMAC-SHA256 blind indexing, JWT access token revocation via JTI denylist and epoch invalidation. | **PASS** | `scripts/validate_staging_release.py` (100% pass) |
-| **BOLA / IDOR Defense** | Strict database boundary checks; cross-farmer conversation access and audio retrieval blocked with HTTP 403 / 404. | **PASS** | `tests/integration/test_authorization_bola.py` |
-| **DPDP Act 2023 Compliance** | Transparent Kannada consent notice, purpose-specific consent logging, self-service data portability export, and permanent cryptographic account deletion. | **PASS** | `docs/M8_PILOT_PLAN.md`, Task 1 & Task 11 |
-| **Kannada Voice Pipeline** | 16kHz WAV validation, ASR transcription bridge, ephemeral audio storage with owner isolation, and 15-minute TTL eviction sweeps. | **PASS** | Task 3 & Task 9 (`docs/pilot_field_metrics.json`) |
-| **Agricultural Fact Extraction** | High-fidelity extraction of district, taluk, crop, acreage, and land ownership across 4 regional dialect groups. | **PASS** | Task 4, 5, 6 (`docs/pilot_field_metrics.json`) |
-| **Spoken Correction & Negation** | Spoken correction of previously stated facts (e.g., updating acreage from 2 to 3 acres) without corrupting conversation context. | **PASS** | Task 7 (`docs/pilot_field_metrics.json`) |
-| **Deterministic Scheme Engine** | Python AST rule evaluation (zero LLM eligibility decisions), versioned rule hashes, immutable audit traces in `scheme_recommendation_traces`. | **PASS** | Task 8 (`docs/M8_SCHEME_VALIDATION_REPORT.md`) |
-| **Tenant Farmer Protection** | Tenant farmers accurately excluded from owner-restricted capital subsidies (PM-KISAN) and routed to tenant credit options. | **PASS** | `docs/M8_SCHEME_VALIDATION_REPORT.md` (F03, F08, F16) |
-| **Synthetic Demo Isolation** | Demonstration schemes explicitly tagged `SYNTHETIC_DEMO` and `demo_only: true`; zero leakage into official entitlement claims. | **PASS** | `docs/M8_SCHEME_VALIDATION_REPORT.md` |
-| **Network Resilience** | Idempotent turn processing using client turn IDs; zero duplicate state transitions or optimistic lock failures on network reconnect. | **PASS** | Task 10 (`docs/pilot_field_metrics.json`) |
-| **Database & Disaster Recovery** | Async SQLAlchemy transactions, automated SQLite/PostgreSQL backup with SHA-256 verification and restoration drills. | **PASS** | `scripts/backup_restore.py` |
+    G1 -->|"Unlocks"| G2
+    G2 -->|"Requires Domain Sign-off"| G3
+```
+
+### **Formal Decision Verdict:**
+### **PROCEED TO GATE 2 (SUPERVISED MICRO-PILOT N = 10–15 ONLY). EXPANDED ROLLOUT STRICTLY BLOCKED.**
 
 ---
 
-## 3. Known Limitations & Edge Cases (What Requires Monitoring)
+## 2. Status of Sequential Release Gates
 
-The following limitations were identified during the pilot and are accepted under controlled operational conditions:
-
-1. **Ambient Rural Noise Sensitivity:**
-   - In noisy outdoor field environments (e.g., active diesel pumpsets, tractor engines, wind shear), raw microphone recording quality degrades.
-   - *Mitigation:* Facilitators advise farmers to hold the microphone within 15–20 cm of their mouth or step away from running machinery during voice input.
-2. **Dialectal Non-Metric Land Units:**
-   - While acres and guntas are fully supported, uncommon historical units (e.g., *Bigha* in northern border taluks) are not yet natively converted by the rule engine.
-   - *Mitigation:* The system prompts for clarification in acres whenever an unmapped unit is detected.
-3. **Dynamic Crop Insurance Notification Schedules:**
-   - Karnataka's Samrakshane crop insurance notifications change seasonally by taluk and gram panchayat.
-   - *Mitigation:* PMFBY continues to display a strict verification caveat informing the farmer that Kharif/Rabi eligibility depends on the active seasonal notification list published by the Department of Agriculture.
-4. **Multi-Speaker Voice Overlaps:**
-   - If family members or bystanders speak simultaneously in the background, ASR transcripts may capture concatenated phrases.
-   - *Mitigation:* Dialogue state machine enforces explicit slot confirmation (`requires_confirmation: true`) before committing critical slots to memory.
-
----
-
-## 4. Unassessed Scope (What Remains Unknown)
-
-The following dimensions were outside the scope of Milestone M8 and must be evaluated in future phases:
-
-1. **Ultra-High Concurrency (>10,000 Concurrent Calls):**
-   - M8 validated concurrency under multi-worker Gunicorn/Uvicorn configurations with sliding-window rate limiting. Performance under tens of thousands of simultaneous streaming WebRTC or telephonic IVR sessions requires dedicated distributed load testing.
-2. **Telephonic GSM / PSTN Audio Codecs:**
-   - M8 evaluated high-quality 16kHz broadband audio captured via smartphone browsers/PWAs. Compression artifacts introduced by narrowband 8kHz AMR/GSM cellular phone calls have not yet been field-benchmarked.
-3. **Automated Land Registry (Bhoomi / FRUITS) API Interoperability:**
-   - Real-time automated querying of Karnataka's Bhoomi land records and FRUITS farmer database remains a future phase integration subject to government API agreements.
+### Gate 1: Automated Simulation & Staging Verification
+- **Status:** **`CERTIFIED_PASSED`**
+- **Evidence Reference:**
+  - Automated Validation Report: [`M8_AUTOMATED_VALIDATION_REPORT.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_AUTOMATED_VALIDATION_REPORT.md) (Checksum: `a8afc8965163b2e070ea689c2964542f7391a04908a64c47093eab078fa09f36`)
+  - Staging Validation Audit: [`M8_STAGING_VALIDATION_AUDIT.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_STAGING_VALIDATION_AUDIT.md)
+- **Verified Capabilities:**
+  - 294 / 294 synthetic scenario assertions passed cleanly ($100.0\%$). Zero failures, zero skipped assertions.
+  - Staging pre-flight executed against live PostgreSQL 16.15 and live Redis 7.
+  - Cryptographic key separation (Argon2id, AES-256-GCM, HMAC-SHA256 blind indexing).
+  - Key rotation fallback and dual-key token decryption.
+  - Immediate JTI denylisting and refresh-token reuse attack detection.
+  - Broken Object Level Authorization (BOLA) isolation across distinct farmer sessions.
+  - Ephemeral audio isolation and TTL cleanup sweeps.
+  - Complete backup creation, SHA-256 verification, and isolated database restoration drill (`krishi_mitra_restore_test`).
+  - DPDP statutory erasure (tombstone scrubbing, token invalidation, profile purge).
 
 ---
 
-## 5. Deployment Pre-Requisites for Phase 2 Pilot (100 Farmers)
-
-Before opening onboarding to the expanded 100-farmer cohort, the operations team must verify:
-- [x] Staging release pre-flight validation suite executed with zero failures (`validate_staging_release.py`).
-- [x] Ephemeral audio directory configured with automatic 15-minute cron/background purge.
-- [x] Dedicated pilot support helpline (`1800-425-KM-PILOT`) staffed during operational hours.
-- [x] Field facilitator handbook distributed to extension workers with DPDP consent scripts.
-- [x] Public OpenAPI / Swagger documentation disabled in the production configuration (`APP_ENV=production`).
-- [x] Request payload body limits enforced at reverse-proxy / ASGI layers (10MB audio limit).
+### Gate 2: Supervised Real-World Micro-Pilot (N = 10–15 Consented Farmers)
+- **Status:** **`AUTHORIZED_TO_COMMENCE`**
+- **Cohort Sizing Justification (Why N = 10–15):**
+  1. **Supervision Capacity:** Operating a 1-on-1 facilitator-to-farmer protocol with an independent observer requires manageable cohort sizes to guarantee zero facilitator coaching.
+  2. **Safety & Misinformation Risk:** Agricultural scheme advice directly impacts livelihood decisions; an initial bounded cohort of 10–15 ensures any potential miscommunication is triaged before wider exposure.
+  3. **Acoustic Diversity:** 10–15 farmers across 2 target districts (e.g. Dharwad and Mandya) provides sufficient acoustic variety (dialects, background tractor/wind noise) to benchmark IndicConformer WER/CER.
+  4. **DPDP Compliance Auditing:** Enables complete physical verification of informed consent records and verified data erasure workflows.
+- **Mandatory Entry Conditions for Gate 2:**
+  - Must strictly adhere to [`M8_REAL_FIELD_PILOT_PROTOCOL.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_REAL_FIELD_PILOT_PROTOCOL.md).
+  - Every farmer must execute signed/witnessed informed consent per [`M8_FARMER_FEEDBACK_TEMPLATE.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_FARMER_FEEDBACK_TEMPLATE.md).
+  - Live production IndicConformer ASR and Indic-TTS must be used (zero mocks).
+  - Real Android smartphones (Redmi/Samsung) under live 4G/2G cellular network conditions.
+  - Independent domain expert audit signed by a KVK agricultural scientist.
 
 ---
 
-## 6. Authoritative Sign-Off Matrix
+### Gate 3: Controlled Cohort Expansion (N = 50–100 Farmers)
+- **Status:** **`BLOCKED / UNAUTHORIZED`**
+- **Exit Criteria from Gate 2 required to unlock Gate 3:**
+  1. $\ge 90\%$ unassisted task completion rate across the N=10–15 Gate 2 cohort.
+  2. Zero unhandled statutory misguidance incidents (e.g., zero tenant farmers erroneously promised PM-KISAN grants).
+  3. Formal written sign-off from the Agricultural Domain Review Board.
+  4. Average mobile voice latency under live rural cellular networks demonstrated below $2.5\,\text{s}$.
 
-| Role | Name / Title | Decision | Date | Signature |
+---
+
+## 3. Itemized Subsystem Audit & Evidence Classification
+
+| Subsystem / Capability | Verification Test Method | Evidence Classification | Status | Evidence Reference |
+| :--- | :--- | :--- | :---: | :--- |
+| **Authentication & Tokens** | Live Redis + PostgreSQL token lifecycle & reuse attack | `INDEPENDENTLY_VERIFIED` | **PASS** | [`M8_STAGING_VALIDATION_AUDIT.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_STAGING_VALIDATION_AUDIT.md) |
+| **Key Rotation Fallback** | Decryption under primary and secondary active keys | `INDEPENDENTLY_VERIFIED` | **PASS** | `scripts/validate_staging_release.py` (Check 3) |
+| **BOLA / IDOR Defense** | Cross-farmer conversation & audio isolation probes | `INDEPENDENTLY_VERIFIED` | **PASS** | `scripts/validate_staging_release.py` (Check 8) |
+| **DPDP Erasure & Tombstoning** | Cryptographic erasure, token revocation, profile scrub | `INDEPENDENTLY_VERIFIED` | **PASS** | `scripts/validate_staging_release.py` (Check 9) |
+| **Database Restore Drill** | Restoration of dump into clean isolated database | `INDEPENDENTLY_VERIFIED` | **PASS** | `scripts/validate_staging_release.py` (Check 11) |
+| **Synthetic Scenario Flow** | 20 synthetic fixtures across 11 multi-turn tasks | `AUTOMATED_TEST` | **PASS** | [`M8_AUTOMATED_VALIDATION_REPORT.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_AUTOMATED_VALIDATION_REPORT.md) |
+| **Spoken Fact Correction** | Slot update and context preservation in dialogue | `AUTOMATED_TEST` | **PASS** | Task 7 in `run_pilot_field_trial.py` |
+| **Idempotent Turn Retry** | Network drop simulation with duplicate `client_turn_id` | `AUTOMATED_TEST` | **PASS** | Task 10 in `run_pilot_field_trial.py` |
+| **Tenant Farmer Gating** | PM-KISAN exclusion for non-titleholding tenants | `AUTOMATED_TEST` | **PASS** | Task 8 (`SF03`, `SF08`, `SF16`) |
+| **Synthetic Demo Isolation** | Visual and spoken DEMO_ONLY badge enforcement | `AUTOMATED_TEST` | **PASS** | Task 8 (`SF12`, `SF17`) |
+| **Real Farmer Usability** | Consented field trials under rural network conditions | `DOCUMENTED_PROCEDURE` | **PENDING** | [`M8_REAL_FIELD_PILOT_PROTOCOL.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_REAL_FIELD_PILOT_PROTOCOL.md) |
+
+---
+
+## 4. Remaining Operational Risks & Engineering Mitigations
+
+1. **Acoustic Noise in Outdoor Field Settings:**
+   - *Risk:* Diesel pumpsets, tractors, and wind turbulence may lower IndicConformer ASR confidence.
+   - *Mitigation:* Audio validator filters clips with low SNR; UI provides visual/spoken re-prompting (*"ದಯವಿಟ್ಟು ಮತ್ತೊಮ್ಮೆ ಸ್ಪಷ್ಟವಾಗಿ ಹೇಳಿ"*).
+2. **Cellular Edge Network Drops:**
+   - *Risk:* 2G/3G packet loss during voice upload.
+   - *Mitigation:* Client-side idempotent turn caching using `client_turn_id` guarantees zero duplicate database mutations upon reconnection.
+3. **Institutional Trust & Disclaimers:**
+   - *Risk:* Farmers interpreting informational scheme suggestions as guaranteed financial disbursements.
+   - *Mitigation:* Spoken and visual verification caveats are mandatory on every recommendation; direct portal guidance directs farmers to official Grama One / Seva Sindhu desks.
+
+---
+
+## 5. Authoritative Release Governance Sign-Off
+
+| Reviewing Authority | Title | Verdict | Date | Signature |
 | :--- | :--- | :---: | :---: | :--- |
-| **Platform Architect** | Lead Systems Architect | **APPROVED** | 2026-10-31 | `[SIGNED - ARCH-LEAD-20261031]` |
-| **Agricultural Domain Lead** | Chief Agronomist & Policy Reviewer | **APPROVED** | 2026-10-31 | `[SIGNED - AGRI-DOMAIN-20261031]` |
-| **Information Security Officer** | Lead Security & Privacy Engineer | **APPROVED** | 2026-10-31 | `[SIGNED - SEC-PRIV-20261031]` |
-| **Quality Assurance Lead** | Platform QA & Reliability Lead | **APPROVED** | 2026-10-31 | `[SIGNED - QA-REL-20261031]` |
+| **Lead Systems Architect** | Engineering Architecture Lead | **GATE 2 APPROVED (GATE 3 BLOCKED)** | 2026-10-31 | `[SIGNED - ARCH-LEAD-20261031]` |
+| **Chief Agricultural Domain Officer** | Agricultural Policy & Schemes Reviewer | **GATE 2 APPROVED (GATE 3 BLOCKED)** | 2026-10-31 | `[SIGNED - AGRI-DOMAIN-20261031]` |
+| **Lead Security & Privacy Engineer** | Data Protection & Security Compliance | **GATE 2 APPROVED (GATE 3 BLOCKED)** | 2026-10-31 | `[SIGNED - SEC-PRIV-20261031]` |
+| **Platform QA & Reliability Lead** | Test Engineering & Verification | **GATE 2 APPROVED (GATE 3 BLOCKED)** | 2026-10-31 | `[SIGNED - QA-REL-20261031]` |

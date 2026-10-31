@@ -19,35 +19,28 @@ convention = {
 
 
 class GUID(TypeDecorator):
-    """Platform-independent GUID type.
-    Uses PostgreSQL's UUID type, otherwise uses String(36).
-    """
+    """Platform-independent GUID type stored as String(36) in all databases."""
 
-    impl = String
+    impl = String(36)
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == "postgresql":
-            return dialect.type_descriptor(PG_UUID(as_uuid=True))
-        else:
-            return dialect.type_descriptor(String(36))
+        return dialect.type_descriptor(String(36))
 
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        elif dialect.name == "postgresql":
-            return str(value) if not isinstance(value, uuid.UUID) else value
-        else:
-            if isinstance(value, uuid.UUID):
-                return str(value)
-            return str(value)
+        return str(value)
 
     def process_result_value(self, value, dialect):
         if value is None:
             return value
         if isinstance(value, uuid.UUID):
             return value
-        return uuid.UUID(value)
+        try:
+            return uuid.UUID(str(value))
+        except (ValueError, TypeError):
+            return value
 
 
 class Base(DeclarativeBase):

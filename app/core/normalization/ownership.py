@@ -82,7 +82,7 @@ OWNERSHIP_PATTERNS: List[Tuple[re.Pattern, OwnershipType, str]] = [
     # Tenant / Cultivator (Cultivation activity 'ಸಾಗುವಳಿ' indicates cultivator/tenant, but does NOT imply legal ownership!)
     (
         re.compile(
-            r"(?<![\w\u0C80-\u0CFF])(ಗೇಣಿದಾರ|ಗೇಣಿದಾರನು|ಗೇಣಿದಾರರು|ಗೇಣಿ ಜಮೀನು|ಗೇಣಿ|ಸಾಗುವಳಿದಾರ|ಸಾಗುವಳಿದಾರರು|ಸಾಗುವಳಿ ಮಾಡುತ್ತಿದ್ದೇನೆ|ಸಾಗುವಳಿ ಜಮೀನು|ಸಾಗುವಳಿ|ಉಳುಮೆ ಮಾಡುತ್ತಿದ್ದೇನೆ|tenant|cultivator)(?![\w\u0C80-\u0CFF])",
+            r"(?<![\w\u0C80-\u0CFF])(ಗೇಣಿದಾರ|ಗೇಣಿದಾರನು|ಗೇಣಿದಾರರು|ಗೇಣಿ ಜಮೀನು|ಗೇಣಿ ಭೂಮಿ|ಗೇಣಿ|ಬೇರೆಯವರ ಜಮೀನು|ಬೇರೆಯವರ|ಸಾಗುವಳಿದಾರ|ಸಾಗುವಳಿದಾರರು|ಸಾಗುವಳಿ ಮಾಡುತ್ತಿದ್ದೇನೆ|ಸಾಗುವಳಿ ಜಮೀನು|ಸಾಗುವಳಿ|ಉಳುಮೆ ಮಾಡುತ್ತಿದ್ದೇನೆ|tenant|cultivator)(?![\w\u0C80-\u0CFF])",
             re.IGNORECASE,
         ),
         OwnershipType.TENANT_OR_CULTIVATOR,

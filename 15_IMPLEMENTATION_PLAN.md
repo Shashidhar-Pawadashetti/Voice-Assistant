@@ -182,24 +182,25 @@ Acceptance:
 ## M8 — Controlled Farmer Pilot & Field Validation
 
 Deliverables:
-- Staging pre-flight validation suite verifying environment configs, health probes, cryptographic keys, DB migration & backup/restore, BOLA isolation, ephemeral audio lifecycle (`scripts/validate_staging_release.py`);
-- 20-farmer controlled field trial simulation across 4 Karnataka agro-climatic zones (North, Kalyana, South, Coastal Karnataka) testing 11 core field usability tasks (`scripts/run_pilot_field_trial.py` generating `docs/pilot_field_metrics.json`);
-- DPDP Act 2023 compliant pilot protocol, bilingual Kannada consent notice, facilitator guidelines, helpline, and unconditional withdrawal procedure (`docs/M8_PILOT_PLAN.md`);
-- Comprehensive field test report detailing task-by-task outcomes across the 11 usability tasks, failure analysis, and facilitator observations vs. farmer confusion (`docs/M8_FIELD_TEST_REPORT.md`);
-- Qualitative farmer feedback analysis covering regional dialects, language clarity, usability friction points, and trust in explanations (`docs/M8_FARMER_FEEDBACK.md`);
+- Staging pre-flight validation suite verifying live PostgreSQL 16, Redis 7, OWASP security headers, BOLA isolation, key separation & dual-key rotation fallback, DPDP verified erasure, and isolated database restoration drill (`scripts/validate_staging_release.py` generating `docs/M8_STAGING_VALIDATION_AUDIT.md`);
+- Automated synthetic cohort simulation harness evaluating 20 predefined fixtures across 11 tasks and 294 assertions with zero skips (`scripts/run_pilot_field_trial.py` generating `docs/M8_AUTOMATED_VALIDATION_REPORT.md` and `docs/m8_automated_validation_metrics.json`);
+- DPDP Act 2023 compliant real-world field pilot evidence protocol, recruitment criteria, facilitator guardrails, and incident response (`docs/M8_REAL_FIELD_PILOT_PROTOCOL.md`);
+- Consented farmer usability survey instrument and research anonymization template (`docs/M8_FARMER_FEEDBACK_TEMPLATE.md`);
+- Corrected linguistic design requirements and illustrative dialogue analysis with zero fabricated quotes (`docs/M8_FARMER_FEEDBACK.md`);
 - Agricultural domain and scheme governance validation report verifying PM-KISAN, PMFBY, Raitha Siri, tenant exclusions, and synthetic demo isolation (`docs/M8_SCHEME_VALIDATION_REPORT.md`);
-- Reliability, performance, and resilience report detailing latency percentiles (p50=88.6ms, p95=199.5ms, p99=238.7ms), audio lifecycle, sliding-window rate limiting, and network drop recovery (`docs/M8_RELIABILITY_REPORT.md`);
-- Formal release decision with itemized capability verification, known limitations, and Qualified GO verdict for Phase 2 100-farmer rollout (`docs/M8_RELEASE_DECISION.md`).
+- Reliability, performance, and resilience report detailing in-process ASGI latencies (p50=81.7ms, p95=198.7ms), audio lifecycle, and network drop idempotency (`docs/M8_RELIABILITY_REPORT.md`);
+- Staged release decision establishing Gate 1 (Automated simulation certified passed), Gate 2 (Supervised micro-pilot N=10-15 authorized to commence), and Gate 3 (100-farmer rollout blocked/unauthorized without real field data) (`docs/M8_RELEASE_DECISION.md`).
 
 Acceptance:
-- 100% staging pre-flight checks pass (`scripts/validate_staging_release.py`);
-- 100% field trial task completion rate across 20 farmers (220/220 tasks passed);
-- Latency meets rural voice-first interaction targets (median p50 = 88.6ms < 500ms);
+- 100% staging pre-flight checks pass against live PostgreSQL 16 and Redis 7 services (`scripts/validate_staging_release.py`);
+- 100% automated scenario assertion completion rate across 20 synthetic fixtures (294/294 assertions passed cleanly, 0 skipped);
+- In-process ASGI latency meets performance targets (median p50 = 81.7ms < 500ms);
 - Deterministic scheme governance verified: zero unauthorized government entitlement approvals, tenant farmers barred from owner-only subsidies, synthetic schemes strictly tagged `DEMO_ONLY`;
 - 100% idempotent recovery from simulated network interruptions using client turn IDs;
-- Ephemeral audio files securely isolated to owners and purged within 15-minute TTL;
-- Full DPDP Act 2023 compliance verified: self-service data portability export and cryptographic account erasure.
-- **Status:** COMPLETED. (See `docs/M8_PILOT_PLAN.md`, `docs/M8_FIELD_TEST_REPORT.md`, `docs/M8_FARMER_FEEDBACK.md`, `docs/M8_SCHEME_VALIDATION_REPORT.md`, `docs/M8_RELIABILITY_REPORT.md`, `docs/M8_RELEASE_DECISION.md`).
+- Ephemeral audio files securely isolated to owners and purged within TTL;
+- Full DPDP Act 2023 compliance verified: self-service data portability export and cryptographic account erasure;
+- Strict prohibition against fabricating real participants, interviews, consent, or field observations enforced across all repository documentation.
+- **Status:** COMPLETED & AUDITED under M8.6 Evidence Integrity. (See `docs/M8_AUTOMATED_VALIDATION_REPORT.md`, `docs/M8_STAGING_VALIDATION_AUDIT.md`, `docs/M8_REAL_FIELD_PILOT_PROTOCOL.md`, `docs/M8_FARMER_FEEDBACK_TEMPLATE.md`, `docs/M8_FARMER_FEEDBACK.md`, `docs/M8_RELEASE_DECISION.md`).
 
 ## Recommended order for first demo
 

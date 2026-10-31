@@ -1,10 +1,20 @@
 # Krishi Mitra — Milestone M8: Scheme Validation & Domain Governance Report
 
 **Document Version:** 1.0.0  
+**Evidence Classification:** `AUTOMATED_TEST` & `DOCUMENTED_PROCEDURE`  
 **Domain Authority:** Senior Agricultural Domain & Scheme Governance Review  
 **Milestone:** M8 — Controlled Farmer Pilot & Field Validation  
 **Baseline Engine:** Deterministic Rule Engine (`app/core/scheme/engine.py` & `app/services/recommendation_service.py`)  
-**Audit Dataset:** 20 Pilot Farmer Evaluations (`docs/pilot_field_metrics.json`)  
+**Audit Dataset:** 20 Synthetic Test Fixtures (`docs/m8_automated_validation_metrics.json`)  
+
+---
+
+> [!NOTE]
+> **EVIDENCE INTEGRITY NOTICE:**  
+> The evaluations and audit traces in this report were conducted across the 20 predefined synthetic test fixtures (`SF01`–`SF20`) using the automated simulation harness (`scripts/run_pilot_field_trial.py`).  
+> - Evidence Class: `AUTOMATED_TEST` (Executed via AST rule engine against synthetic vectors).
+> - Tenant exclusion, PMFBY caveats, and demo isolation were verified mathematically by software assertions.
+> - Real-world farmer pilot evaluations will be conducted and audited separately under [`M8_REAL_FIELD_PILOT_PROTOCOL.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_REAL_FIELD_PILOT_PROTOCOL.md).  
 
 ---
 

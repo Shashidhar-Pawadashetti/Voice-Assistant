@@ -546,7 +546,10 @@ def _build_district_index() -> List[Tuple[re.Pattern, DistrictRecord, str]]:
 
     compiled: List[Tuple[re.Pattern, DistrictRecord, str]] = []
     for alias, d in pairs:
-        pat = re.compile(rf"(?<![\w\u0C80-\u0CFF]){re.escape(alias)}(?![\w\u0C80-\u0CFF])", re.IGNORECASE)
+        pat = re.compile(
+            rf"(?<![\w\u0C80-\u0CFF]){re.escape(alias)}(?:ದಲ್ಲಿ|ನಲ್ಲಿ|ಯಿಂದ|ದಿಂದ|ಯವನು|ದವರು|ಯವರು|ಯ|ದ|ಗೆ|ಕ್ಕೆ)?(?![\w\u0C80-\u0CFF])",
+            re.IGNORECASE,
+        )
         compiled.append((pat, d, alias))
     return compiled
 
@@ -562,13 +565,30 @@ def _build_taluk_index() -> List[Tuple[re.Pattern, TalukRecord, DistrictRecord, 
 
     compiled: List[Tuple[re.Pattern, TalukRecord, DistrictRecord, str]] = []
     for alias, t, d in pairs:
-        pat = re.compile(rf"(?<![\w\u0C80-\u0CFF]){re.escape(alias)}(?![\w\u0C80-\u0CFF])", re.IGNORECASE)
+        pat = re.compile(
+            rf"(?<![\w\u0C80-\u0CFF]){re.escape(alias)}(?:ದಲ್ಲಿ|ನಲ್ಲಿ|ಯಿಂದ|ದಿಂದ|ಯವನು|ದವರು|ಯವರು|ಯ|ದ|ಗೆ|ಕ್ಕೆ)?(?![\w\u0C80-\u0CFF])",
+            re.IGNORECASE,
+        )
         compiled.append((pat, t, d, alias))
     return compiled
 
 
 _DISTRICT_INDEX = _build_district_index()
 _TALUK_INDEX = _build_taluk_index()
+
+
+def get_district_by_id(district_id: str) -> Optional[DistrictInfo]:
+    """Retrieve canonical DistrictInfo by district_id."""
+    did = district_id.upper().strip()
+    for d in KARNATAKA_DISTRICTS:
+        if d.district_id == did:
+            return DistrictInfo(
+                district_id=d.district_id,
+                kannada_name=d.kannada_name,
+                english_name=d.english_name,
+                matched_alias=d.kannada_name,
+            )
+    return None
 
 
 def normalize_district(text: str) -> Optional[DistrictInfo]:

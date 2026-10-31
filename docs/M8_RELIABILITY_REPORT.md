@@ -1,31 +1,40 @@
 # Krishi Mitra — Milestone M8: Reliability, Performance & Resilience Engineering Report
 
 **Document Version:** 1.0.0  
+**Evidence Classification:** `AUTOMATED_TEST` (In-process harness benchmarks with mock speech components)  
 **Evaluator:** Platform Reliability & Performance Engineering  
 **Milestone:** M8 — Controlled Farmer Pilot & Field Validation  
-**Target Environment:** Staging / Production Pre-Flight Cluster  
+**Target Environment:** Staging / In-Process ASGI Test Environment  
 **Baseline Commit:** M7 `f7e5575573f700f262c0a6ae4e4849d0f11163e2`  
-**Empirical Benchmark Data:** `docs/pilot_field_metrics.json`  
+**Automated Benchmark Data:** `docs/m8_automated_validation_metrics.json`  
+
+---
+
+> [!NOTE]
+> **EVIDENCE INTEGRITY DISCLOSURE:**  
+> The performance metrics, latencies, and resilience benchmarks presented in this report were recorded by an automated test harness (`scripts/run_pilot_field_trial.py`) using in-process ASGI clients, SQLite/PostgreSQL connections, and mock speech interfaces.  
+> - Latencies reflect in-process CPU and I/O execution times, **not** real-world 2G/3G/4G wireless network transmission delays.
+> - Task evaluations reflect synthetic scenario assertions across predefined fixtures (`SF01`–`SF20`), not human participants.
+> - Real-world cellular network benchmarks will be recorded under [`M8_REAL_FIELD_PILOT_PROTOCOL.md`](file:///C:/Users/shash/OneDrive/Desktop/PROJECTS/Voice-Assistant/docs/M8_REAL_FIELD_PILOT_PROTOCOL.md).
 
 ---
 
 ## 1. Executive Summary & Reliability SLA
 
-Milestone M8 assessed the technical reliability, operational stability, and network resilience of Krishi Mitra under controlled simulated rural operating conditions. 
+Milestone M8 assessed the technical reliability, operational stability, and network resilience of Krishi Mitra under automated test conditions. 
 
-The system demonstrated **zero unhandled exceptions**, **zero race conditions**, and **100% recovery from network interruptions**. All service latency percentiles comfortably satisfied the rural voice-interaction target (sub-500ms API response time).
+The system demonstrated **zero unhandled exceptions**, **zero race conditions**, and **100% recovery from simulated network interruptions**. All in-process API response times comfortably satisfied the sub-500ms target.
 
 ### Key Performance & Reliability Metrics:
-- **Total Requests Evaluated:** 220 pilot tasks across 20 distinct farmer sessions.
+- **Total Requests Evaluated:** 294 assertions across 20 synthetic fixture scenarios.
 - **Service Uptime during Trial:** **100.0%**.
 - **Error Budget Consumed:** **0.0%** (zero HTTP 5xx errors emitted).
-- **Latency Percentiles (End-to-End API Layer):**
-  - **p50 (Median):** **88.6 ms**
-  - **p95:** **199.5 ms**
-  - **p99:** **238.7 ms**
-  - **Mean:** **85.4 ms**
-  - **Maximum:** **261.3 ms**
-- **Network Resilience:** 100% idempotent recovery during sudden TCP dropouts.
+- **In-Process ASGI Latency Percentiles:**
+  - **p50 (Median):** **81.7 ms**
+  - **p95:** **198.7 ms**
+  - **p99:** **229.5 ms**
+  - **Mean:** **81.2 ms**
+- **Network Resilience:** 100% idempotent recovery during simulated dropouts.
 
 ---
 
