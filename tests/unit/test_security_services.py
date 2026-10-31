@@ -94,7 +94,8 @@ async def test_auth_service_edge_cases(db_session: AsyncSession):
     await db_session.flush()
 
     from app.core.security.crypto import compute_phone_hash
-    real_hash = compute_phone_hash("9876500001", service.settings.APP_SECRET_KEY)
+    blind_key = service.settings.BLIND_INDEX_KEY or service.settings.APP_SECRET_KEY
+    real_hash = compute_phone_hash("9876500001", blind_key)
     locked_farmer.phone_number_hash = real_hash
     await db_session.flush()
 

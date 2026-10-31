@@ -7,6 +7,7 @@ WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -22,10 +23,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install runtime system dependencies (curl for health check, ffmpeg for audio processing)
+# Install runtime system dependencies (curl for health check, ffmpeg for audio processing, libpq5 for PostgreSQL)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ffmpeg \
+    libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies from builder
