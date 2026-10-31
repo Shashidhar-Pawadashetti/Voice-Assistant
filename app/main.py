@@ -35,8 +35,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     setup_logging(level=settings.LOG_LEVEL, log_format=settings.LOG_FORMAT)
     logger.info("Initializing Krishi Mitra backend in '%s' environment", settings.APP_ENV)
 
-    # Initialize database engine
-    get_engine()
+    # Initialize database engine and ensure tables exist
+    engine = get_engine()
+    try:
+        from app.models import Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database schema checked/initialized successfully")
+    except Exception as db_err:
+        logger.warning("Database schema auto-initialization skipped or failed: %s", db_err)
+
+    # Ensure audio temp directory exists
+    try:
+        from app.core.audio.lifecycle import ensure_audio_temp_dir
+        ensure_audio_temp_dir()
+    except Exception as dir_err:
+        logger.warning("Audio temp dir check skipped: %s", dir_err)
 
     yield
 
